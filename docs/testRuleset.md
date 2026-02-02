@@ -132,6 +132,38 @@ When generating or updating testcase Excel files, include these mandatory column
   - PRESERVE: TestCase ID, Description, Expected Result, Test Steps, Priority
   - RECALCULATE summary statistics automatically
 
+### 6.2. JSON Output Schema for Agents (STRICT ENFORCEMENT)
+
+**CRITICAL**: All AI-generated JSON outputs MUST adhere to this exact schema to be compatible with the automation pipeline.
+
+**Required JSON Structure:**
+
+```json
+{
+  "test_cases": [
+    {
+      "id": "TC-[FEATURE]-[SUB]-[001]",
+      "title": "Strictly descriptive title",
+      "pre_condition": "Context/setup",
+      "steps": ["Step 1", "Step 2"],
+      "expected_result": "Detailed outcome",
+      "type": "Functional",
+      "priority": "P0"
+    }
+  ]
+}
+```
+
+**Validation Constraints:**
+
+1.  **Root Object**: Must be a Dictionary with key `"test_cases"` (List). Do NOT return a raw List.
+2.  **Key Casing**: All keys MUST be **lowercase** (e.g., `id`, `title`, `steps`). Do NOT use TitleCase (e.g., `ID`, `Description`).
+3.  **ID Format**: MUST start with `TC-`. Example: `TC-SIGNUP-VAL-001`.
+4.  **Performance Units**:
+    - API Response: `ms` (milliseconds). E.g., `< 5000ms` (NOT `5s`).
+    - Timeouts/Delays: `s` (seconds). E.g., `10s`.
+5.  **Browser Keywords**: If testing compatibility, MUST include the exact browser name in the `Description`/`Title` (Chrome, Firefox, Safari, Edge, Opera Mini).
+
 ---
 
 ## 7. Riske Assessment Matrix
@@ -145,3 +177,25 @@ When generating or updating testcase Excel files, include these mandatory column
 ---
 
 **Note**: This ruleset is dynamic. If a new usage pattern emerges, update this document immediately.
+
+---
+
+## 8. Mandatory Coverage Checklist (The "AI Self-Correction")
+
+**CRITICAL**: Before finishing any test generation task, the Agent MUST scan the PRD for the following sections. If a section exists in the PRD, you MUST generate at least one corresponding test case.
+
+| PRD Section / Keywords            | Required Test Case Type      | Example ID           |
+| :-------------------------------- | :--------------------------- | :------------------- |
+| **Analytics** / Tracking / Events | `Functional` or `Analytics`  | `TC-[FEAT]-ANA-001`  |
+| **Security** / Rate Limit / Auth  | `Security`                   | `TC-[FEAT]-SEC-001`  |
+| **Performance** / Response Time   | `Performance`                | `TC-[FEAT]-PERF-001` |
+| **Navigation** / Link / Redirect  | `Functional` or `Navigation` | `TC-[FEAT]-NAV-001`  |
+| **Error Handling** / 500 / 400    | `Functional` or `Error`      | `TC-[FEAT]-ERR-001`  |
+
+> **Process**:
+>
+> 1. Read PRD.
+> 2. List all headers (e.g., "5. Analytics").
+> 3. Generate Core Functional Tests.
+> 4. **CHECK**: Did I cover Section 5 (Analytics)? -> No? -> **GENERATE NOW**.
+> 5. **CHECK**: Did I cover Rate Limiting? -> No? -> **GENERATE NOW**.

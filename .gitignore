@@ -15,3 +15,22 @@ output/
 # Editor
 .vscode/
 .idea/
+
+# Agent Memory (Do not share)
+.brain/
+
+# Input/Output (Keep folders but ignore content)
+input/*
+!input/.gitkeep
+!input/swagger.json
+!input/matrix_factors.json
+
+# Temporary/Debug Files
+*.txt
+!requirements.txt
+capture_val.py
+debug_validation.py
+run_val_update.py
+run_validation_debug.py
+verify_columns.py
+val_out.txt

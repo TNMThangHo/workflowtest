@@ -77,15 +77,24 @@ def step_prepare():
     print("\n✅ PREPARE Phase Complete. Ready for AI Generation.")
     print(json.dumps(context_report, indent=2))
 
-def step_format():
+def step_format(prd=None):
     print("🚀 Starting Phase: FORMAT (JSON -> Markdown)...")
     
     # 1. Format JSON -> Markdown
     raw_json = os.path.join("output", "raw_testcases.json")
     if os.path.exists(raw_json):
         print("   -> Formatting Test Cases...")
-        run_cmd(f"python test-gen/format_output.py --input {raw_json}")
-        print("\n✅ FORMAT Complete. Check output/test_cases.md")
+        cmd = f"python test-gen/format_output.py --input {raw_json}"
+        
+        # Smart Naming: If PRD is provided, use its name for the output file
+        if prd:
+            basename = os.path.splitext(os.path.basename(prd))[0]
+            output_name = f"{basename}_testcases.md"
+            cmd += f" --filename {output_name}"
+            print(f"   ℹ️  Targeting output file: {output_name}")
+            
+        run_cmd(cmd)
+        print("\n✅ FORMAT Complete.")
     else:
         print("❌ output/raw_testcases.json not found. Did AI generate it?")
 
@@ -104,6 +113,7 @@ def step_report():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test Gen Orchestrator")
     parser.add_argument("--step", choices=["prepare", "format", "report"], required=True, help="Workflow step to execute")
+    parser.add_argument("--prd", help="Path to PRD file (for naming outputs)", default=None)
     
     args = parser.parse_args()
     
@@ -114,6 +124,6 @@ if __name__ == "__main__":
     if args.step == "prepare":
         step_prepare()
     elif args.step == "format":
-        step_format()
+        step_format(args.prd)
     elif args.step == "report":
         step_report()

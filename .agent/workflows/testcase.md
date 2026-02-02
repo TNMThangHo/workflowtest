@@ -25,7 +25,8 @@ Workflow này chuyên biệt để sinh **Test Cases** chi tiết và xuất ra 
 
 1.  **Nạp Context**:
     - `view_file output/run_context.json`.
-    - `view_file` các file PRD và `docs/references.md`.
+    - `view_file` các file PRD.
+    - `view_file docs/references.md` và `docs/test_generation_best_practices.md` (MANDATORY).
     - `view_file output/technical_specs.json` (Để lấy chính xác MaxLength, Regex, Error Codes).
     - `view_file output/test_matrix.json` (Để lấy các Scenario tổ hợp).
 

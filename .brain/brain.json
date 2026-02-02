@@ -2,7 +2,7 @@
   "meta": {
     "schema_version": "1.1.0",
     "awf_version": "4.2.0",
-    "last_updated": "2026-02-02T12:05:00+07:00"
+    "last_updated": "2026-02-02T15:45:00+07:00"
   },
   "project": {
     "name": "workflowTesting",
@@ -78,7 +78,7 @@
       "Smart Context: Orchestrator auto-collects Swagger/Matrix/PRD/References.",
       "Strict Mode: Agent must self-correct against 'docs/testRuleset.md' (Security/UX/Validation).",
       "Turbo Mode: Use '// turbo-all' for fully automated workflows.",
-      "Relative Paths: Scripts must use relative paths for portability."
+      "Template Strategy: Repo is a template, use 'Clone & Rename' for new projects (not global CLI)."
     ],
     "conventions": [
       "Workflows location: .agent/workflows/",

@@ -52,7 +52,9 @@ python test-gen/main.py --step format
 **Available Workflows:**
 
 - **/testcase** - Generate comprehensive test cases from PRD
+- **/test-plan** - Generate Test Plan from PRD (Scope, Strategy, Resources)
 - **/test-report** - Generate test execution report
+- **/release-note** - Generate Release Note from PRD (User-friendly, Feature highlights)
 - **/update-tc** - Update existing testcase Excel with new requirements (appends new test cases)
 - **/update-tr** - Update test report with new execution results (updates status, results, evidence)
 

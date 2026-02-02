@@ -14,7 +14,6 @@ Automate your QA workflow with AI using this "Smart Test Generator". It analyzes
 ### 1. Prerequisites
 
 - Python 3.8+
-- An OpenAI/Gemini API Key (set as environment variable).
 
 ### 2. Installation
 

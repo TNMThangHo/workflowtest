@@ -6,6 +6,7 @@ import sys
 from .logger import log
 sys.path.append(os.path.dirname(__file__))
 from exporter import Exporter
+from markdown_generator import generate_markdown_report
 
 def validate_json(data):
     required_keys = ["test_cases", "test_plan", "release_note"]
@@ -50,7 +51,7 @@ def main():
     # Initialize Exporter
     exporter = Exporter(output_dir=args.output)
     
-    # 1. Export Test Cases (Markdown)
+    # 1. Export Test Cases (Template-based Markdown)
     test_cases = data.get("test_cases", [])
     if test_cases:
         log.info(f"Test Cases Export: Found {len(test_cases)} test cases.")
@@ -58,9 +59,18 @@ def main():
         if args.filename:
             fname = args.filename if args.filename.endswith('.md') else f"{args.filename}.md"
         
-        # Use 'Readable' Markdown Table exporter (Compact, Editable Status)
-        md_path = exporter.export_to_markdown_readable_table(test_cases, filename=fname)
-        log.info(f"   -> Saved to: {md_path}")
+        # Prepare data using exporter's logic (reusing existing robust preparation)
+        prepared_data = exporter.prepare_data_for_template(data)
+        
+        # Generate Markdown using Python Generator (No Jinja2)
+        md_content = generate_markdown_report(prepared_data)
+        
+        # Save output
+        out_path = os.path.join(args.output, fname)
+        with open(out_path, 'w', encoding='utf-8') as f:
+            f.write(md_content)
+            
+        log.info(f"   -> Saved to: {out_path}")
     else:
         log.warning("Test Cases Export: No test cases found.")
 

@@ -64,13 +64,36 @@ class RequirementExtractor:
 
 def run_extraction(prd_path):
     try:
-        with open(prd_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-            
+        # Use PRDParser to extract metadata
+        from .markdown_parser import PRDParser
+        
+        parser = PRDParser(prd_path)
+        if not parser.load():
+            return False
+        
+        # Extract metadata from header
+        metadata = parser.extract_metadata_header()
+        log.info(f"📊 Metadata extracted: {metadata}")
+        
+        # Extract atomic requirements
+        content = parser.get_full_content()
         extractor = RequirementExtractor(content)
         extractor.extract_atomic()
-        extractor.save_to_json()
+        
+        # Save requirements with metadata
+        output_data = {
+            "metadata": metadata,
+            "atomic_requirements": extractor.requirements
+        }
+        
+        output_path = "output/requirements.json"
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(output_data, f, indent=2, ensure_ascii=False)
+        
+        log.info(f"✅ Extracted {len(extractor.requirements)} atomic requirements with metadata to {output_path}")
         return True
     except Exception as e:
-        log.error(f"Error reading PRD: {e}")
+        log.error(f"Error in extraction: {e}")
+        import traceback
+        log.error(traceback.format_exc())
         return False

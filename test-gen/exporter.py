@@ -131,5 +131,208 @@ class Exporter:
             import traceback
             return f"Error exporting to Readable Markdown Table: {e} {traceback.format_exc()}"
 
+    def prepare_data_for_template(self, data: dict) -> dict:
+        """
+        Prepare dictionary with all variables needed for report generation
+        """
+        import sys
+        sys.path.append(os.path.dirname(__file__))
+        from template_engine import (
+            calculate_statistics,
+            categorize_testcases,
+            extract_nft_categories
+        )
+        from datetime import datetime
+        
+        # Extract data
+        test_cases = data.get('test_cases', [])
+        metadata = data.get('metadata', {})
+        
+        if not test_cases:
+            return {}
+        
+        # Categorize Functional vs Non-Functional
+        functional, non_functional = categorize_testcases(test_cases)
+        
+        # Calculate statistics
+        all_stats = calculate_statistics(test_cases)
+        
+        # Prepare template data with all variables
+        return {
+            # Metadata
+            'feature_name': metadata.get('feature_name', 'Test Cases'),
+            'prd_version': metadata.get('prd_version', '1.0.0'),
+            'created_date': datetime.now().strftime('%Y-%m-%d'),
+            'tester': metadata.get('tester', 'QA Team'),
+            
+            # Dashboard Statistics
+            'total_cases': all_stats['total_cases'],
+            'functional_count': len(functional),
+            'non_functional_count': len(non_functional),
+            'p0_count': all_stats['p0_count'],
+            'p0_percent': all_stats['p0_percent'],
+            'p1_count': all_stats['p1_count'],
+            'p1_percent': all_stats['p1_percent'],
+            'p2_count': all_stats['p2_count'],
+            'p2_percent': all_stats['p2_percent'],
+            'p3_count': all_stats['p3_count'],
+            'p3_percent': all_stats['p3_percent'],
+            
+            # Test Cases Lists
+            'functional_testcases': self._prepare_functional_data(functional),
+            'non_functional_testcases': self._prepare_nonfunctional_data(non_functional),
+            
+            # NFT Categories
+            'nft_categories': extract_nft_categories(non_functional)
+        }
+
+    def export_to_template_markdown(self, data: dict, template_path: str, output_filename: str = "test_cases.md") -> str:
+        """
+        Export test cases using Jinja2 template
+        """
+        import sys
+        sys.path.append(os.path.dirname(__file__))
+        from template_engine import render_template
+        
+        # Prepare data (handle both raw data dict and already prepared dict)
+        if 'test_cases' in data and isinstance(data['test_cases'], list):
+             # Raw data passed, prepare it
+             template_data = self.prepare_data_for_template(data)
+        else:
+             # Already prepared or different structure (legacy support)
+             template_data = data
+             
+        try:
+            # Render template
+            rendered = render_template(template_path, template_data)
+            
+            # Save to file
+            filepath = os.path.join(self.output_dir, output_filename)
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(rendered)
+            
+            return filepath
+        except Exception as e:
+            import traceback
+            return f"Error rendering template: {e}\n{traceback.format_exc()}"
+    
+    def _prepare_functional_data(self, test_cases: list) -> list:
+        """
+        Prepare functional test cases for template
+        Ensures all 11 required fields are present
+        """
+        import sys
+        sys.path.append(os.path.dirname(__file__))
+        from template_engine import format_test_data, format_steps
+        
+        prepared = []
+        for tc in test_cases:
+            prepared_tc = tc.copy()
+            
+            # Ensure all required fields with defaults
+            prepared_tc.setdefault('module', 'General')
+            prepared_tc.setdefault('pre_condition', '-')
+            prepared_tc.setdefault('test_data', '-')
+            prepared_tc.setdefault('status', '[ ] Pass / [ ] Fail / [ ] Skip / [ ] Blocked')
+            prepared_tc.setdefault('created_date', '')
+            prepared_tc.setdefault('execute_date', '')
+            
+            # Calculate step count for collapsible display
+            if isinstance(prepared_tc.get('steps'), list):
+                prepared_tc['step_count'] = len(prepared_tc['steps'])
+                prepared_tc['steps'] = format_steps(prepared_tc['steps'])
+            else:
+                # Count steps by bullet separator
+                steps_str = str(prepared_tc.get('steps', ''))
+                prepared_tc['step_count'] = steps_str.count('•') + 1 if '•' in steps_str else 1
+            
+            # Create shortened version for simplified table
+            steps_full = prepared_tc.get('steps', '-')
+            if len(str(steps_full)) > 100:
+                prepared_tc['steps_short'] = str(steps_full)[:100] + '...'
+            else:
+                prepared_tc['steps_short'] = steps_full
+            
+            # Simplified status for table
+            prepared_tc['status_short'] = '[ ]'
+            
+            if prepared_tc.get('test_data') and prepared_tc['test_data'] != '-':
+                prepared_tc['test_data'] = format_test_data(prepared_tc['test_data'])
+            
+            prepared.append(prepared_tc)
+        
+        return prepared
+    
+    def _prepare_nonfunctional_data(self, test_cases: list) -> list:
+        """
+        Prepare non-functional test cases for template
+        Ensures all 9 required fields are present
+        """
+        import sys
+        sys.path.append(os.path.dirname(__file__))
+        from template_engine import format_steps
+        
+        # Extended mapping for both code types and full names
+        type_to_category = {
+            # Code types
+            'SEC': 'Security',
+            'PERF': 'Performance',
+            'COMP': 'Compatibility',
+            'UX': 'Usability',
+            'ANA': 'Analytics',
+            'AVAIL': 'Availability',
+            'REL': 'Reliability',
+            'ACCESS': 'Accessibility',
+            
+            # Full names (from AI output)
+            'Security': 'Security',
+            'Performance': 'Performance',
+            'Compatibility': 'Compatibility',
+            'Usability': 'Usability',
+            'UI/UX': 'Usability',
+            'Analytics': 'Analytics',
+            'Availability': 'Availability',
+            'Reliability': 'Reliability',
+            'Accessibility': 'Accessibility'
+        }
+        
+        prepared = []
+        for tc in test_cases:
+            prepared_tc = tc.copy()
+            
+            # Auto-derive category from type if not set
+            tc_type = prepared_tc.get('type', '')
+            if 'category' not in prepared_tc or not prepared_tc['category']:
+                prepared_tc['category'] = type_to_category.get(tc_type, 'Other')
+            
+            # Ensure all required fields
+            prepared_tc.setdefault('tools', '-')
+            prepared_tc.setdefault('pass_criteria', '-')
+            prepared_tc.setdefault('created_date', '')
+            prepared_tc.setdefault('execute_date', '')
+            
+            # Calculate step count for collapsible display
+            if isinstance(prepared_tc.get('steps'), list):
+                prepared_tc['step_count'] = len(prepared_tc['steps'])
+                prepared_tc['steps'] = format_steps(prepared_tc['steps'])
+            else:
+                # Count steps by bullet separator  
+                steps_str = str(prepared_tc.get('steps', ''))
+                prepared_tc['step_count'] = steps_str.count('•') + 1 if '•' in steps_str else 1
+            
+            # Create shortened version for simplified table
+            steps_full = prepared_tc.get('steps', '-')
+            if len(str(steps_full)) > 100:
+                prepared_tc['steps_short'] = str(steps_full)[:100] + '...'
+            else:
+                prepared_tc['steps_short'] = steps_full
+            
+            # Simplified status for table
+            prepared_tc['status_short'] = '[ ]'
+            
+            prepared.append(prepared_tc)
+        
+        return prepared
+
 if __name__ == "__main__":
     print("Exporter Initialized")

@@ -1,12 +1,20 @@
+**Feature:** User Signup
+**Phiên bản:** 1.0.0
+**Người thực hiện:** QA Team
+
 # PRD: Chức năng Đăng ký Tài khoản (User Registration)
 
-| Mục                 | Chi tiết                     |
-| :------------------ | :--------------------------- |
-| **Dự án**           | [Tên Dự Án Của Bạn]          |
-| **Phiên bản**       | 1.0                          |
-| **Trạng thái**      | Draft / In-Review / Approved |
-| **Ngày tạo**        | 30/01/2026                   |
-| **Người thực hiện** | [Tên Bạn]                    |
+| Mục                      | Chi tiết                     |
+| :----------------------- | :--------------------------- |
+| **Dự án**                | [Tên Dự Án Của Bạn]          |
+| **Phiên bản**            | 1.0                          |
+| **Trạng thái**           | Draft / In-Review / Approved |
+| **Ngày tạo**             | 30/01/2026                   |
+| **Người thực hiện**      | [Tên Bạn]                    |
+| **QA Lead**              | Hương Trần                   |
+| **Tester(s)**            | Thắng, Trang, Thanh          |
+| **Supporting Developer** | Đức Thái                     |
+| **BA/PO**                | Loan Trần                    |
 
 ---
 
@@ -94,6 +102,7 @@ Màn hình Đăng ký bao gồm các trường sau:
 
 - Thời gian phản hồi API đăng ký: < 1 giây.
 - Email xác thực phải được gửi đi trong vòng 10 giây sau khi đăng ký.
+- Hoạt động tốt với 5000 CCU
 
 ### 4.3. Tương thích (Compatibility)
 

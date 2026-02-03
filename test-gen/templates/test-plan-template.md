@@ -67,10 +67,7 @@ Features not included in the current testing effort.
 - **QA Lead:** [Name]
 - **Tester(s):** [Name/Name/...]
 - **Supporting Developer:** [Name/Name/...]
-- **BA/PO:** [Name/Name/...]
-
-## 7. Risks & Mitigation
-
+- **BA/PO:** [Name/Name/...]7. Risks & Mitigation
 - **Risk:** Lack of documentation → **Mitigation:** Align with BA/PO.
 - **Risk:** Unstable build → **Mitigation:** Freeze version for UAT.
 - **Risk:** Missing test data → **Mitigation:** Prepare data beforehand.

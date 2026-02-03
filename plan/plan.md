@@ -22,14 +22,14 @@ Xây dựng quy trình khép kín, tự tối ưu và có khả năng tự phụ
 
 ### Giai đoạn 3: Lập kế hoạch & Báo cáo (Output Layer)
 
-- **Test Plan:** Tự động ước tính thời gian dựa trên số lượng và độ phức tạp của Test Case.
-- **Test Report:** Tổng hợp kết quả thực thi, tính toán tỷ lệ Pass/Fail và phân tích rủi ro.
+- **Test Plan:** File Markdown `output/test_cases.md` chứa danh sách test case đã được định dạng bảng.
+- **Test Report:** File Excel `output/TEST_REPORT.xlsx` chứa thống kê Pass/Fail và Breakdown theo Type/Priority. File `output/SUMMARY_REPORT.md` tóm tắt nhanh.
 
 ### Giai đoạn 4: Cập nhật & Phân tích Tác động (Sync Layer)
 
-- **Command:** `/update`.
-- **Impact Analysis:** AI không chỉ tìm "Delta" mà còn phân tích xem thay đổi ở Module này có ảnh hưởng đến Test Case của Module khác không (Regression Impact).
-- **State Management:** Lưu trữ lịch sử tại thư mục `data/` để đối chiếu phiên bản.
+- **Command:** `/update` triggers `python -m test-gen.main --step sync`.
+- **Impact Analysis:** Hệ thống so sánh ID và Title để xác định test case mới. (Roadmap: Phân tích Regression Impact dựa trên Dependency Graph).
+- **State Management:** Lưu trữ snapshot tại thư mục `output/` để đối chiếu phiên bản.
 
 ---
 
@@ -43,15 +43,15 @@ Xây dựng quy trình khép kín, tự tối ưu và có khả năng tự phụ
 
 ## 4. DANH SÁCH FILE TRIỂN KHAI TOÀN CẢNH
 
-| **STT** | **File**             | **Chức năng chi tiết**                                                            |
-| ------- | -------------------- | --------------------------------------------------------------------------------- |
-| 1       | `main.py`            | **Orchestrator** : Tiếp nhận lệnh, điều phối luồng và xử lý lỗi toàn cục.         |
-| 2       | `markdown_parser.py` | **Parser** : Chuyển đổi Markdown thành cấu trúc JSON tinh gọn.                    |
-| 3       | `generator.py`       | **Core AI** : Thực thi các kỹ thuật viết testcase chuyên sâu từ `prompts.py`.     |
-| 4       | **`validator.py`**   | **Quality Gate** : Kiểm tra logic và định dạng đầu ra của AI trước khi lưu.       |
-| 5       | `prompts.py`         | **Prompt Library** : Lưu trữ các template Prompt và kỹ thuật kiểm thử.            |
-| 6       | `updater.py`         | **Impact Tracker** : So sánh phiên bản và phân tích tác động thay đổi.            |
-| 7       | `reporter.py`        | **Formatter** : Xuất bản `test_plan.md`và `test_report.md`.                       |
-| 8       | `schema.py`          | **Data Model** : Định nghĩa cấu trúc dữ liệu nhất quán cho toàn hệ thống.         |
-| 9       | `logger.py`          | **Monitor** : Ghi nhật ký vận hành để phục vụ debug và tối ưu Prompt.             |
-| 10      | `data/`(Folder)      | **Vault** : Lưu trữ trạng thái (State) của các phiên bản kiểm thử dưới dạng JSON. |
+| **STT** | **File**             | **Chức năng chi tiết**                                                               |
+| ------- | -------------------- | ------------------------------------------------------------------------------------ |
+| 1       | `main.py`            | **Orchestrator** : Tiếp nhận lệnh, điều phối luồng và xử lý lỗi toàn cục.            |
+| 2       | `markdown_parser.py` | **Parser** : Chuyển đổi Markdown thành cấu trúc JSON tinh gọn.                       |
+| 3       | `generator.py`       | **Core AI** : Thực thi các kỹ thuật viết testcase chuyên sâu từ `prompts.py`.        |
+| 4       | **`validator.py`**   | **Quality Gate** : Kiểm tra logic và định dạng đầu ra của AI trước khi lưu.          |
+| 5       | `prompts.py`         | **Prompt Library** : Lưu trữ các template Prompt và kỹ thuật kiểm thử.               |
+| 6       | `updater.py`         | **Sync Engine** : Đồng bộ test case mới vào file cũ, bảo toàn history (Append-only). |
+| 7       | `reporter.py`        | **Reporter** : Sinh báo cáo Excel (`xlsx`) và Summary (`md`) từ kết quả test.        |
+| 8       | `schema.py`          | **Data Model** : Định nghĩa cấu trúc `TestCase`, `TestSuite` chuẩn JSON.             |
+| 9       | `logger.py`          | **Logger** : Ghi log màu ra console và file `logs/test_gen.log`.                     |
+| 10      | `output/`(Folder)    | **Artifacts** : Chứa `raw_testcases.json`, `test_cases.md`, `run_context.json`.      |

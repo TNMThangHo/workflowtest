@@ -1,5 +1,46 @@
 # Changelog
 
+## [2026-02-03] - Test Plan & Report Improvements
+
+### Added
+
+- **Metadata extraction** trong `/test-plan` workflow
+  - Đọc tự động thông tin team từ PRD (QA Lead, Testers, Developer, BA/PO)
+  - Không còn placeholder [TBD] trong Test Plan
+- **Markdown test report generation** (`update_report.py`)
+  - Parse checkbox status từ test case markdown
+  - Generate formatted report với statistics
+  - Output: `UPDATED_TEST_REPORT_<timestamp>.md`
+- **--target argument** trong `main.py` để support `/update-tc` workflow
+
+### Changed
+
+- **Simplified Test Plan roles** để khớp với PRD structure:
+  - Gộp QA Engineer 1/2/Automation → **Tester(s)**
+  - Gộp Backend/Frontend Developer → **Supporting Developer**
+- **Converted `/update-tr` workflow** từ Excel sang Markdown format
+  - User preference cho .md files
+  - Dễ version control hơn Excel
+  - Template-based generation đơn giản hơn
+
+### Fixed
+
+- Import errors trong `update_report.py` (relative imports)
+- Logger reference errors (dùng `log` instead of `logger`)
+- Markdown parsing không nhận diện test case IDs (fixed regex pattern)
+- Missing --target argument gây lỗi khi chạy sync step
+
+### Technical Details
+
+- Files changed: 3 files, 282 insertions(+), 299 deletions(-)
+- Commits:
+  - `f987a87`: Improve test plan workflow with metadata extraction
+  - `a74f4f1`: Convert update-tr workflow to markdown format
+
+---
+
+# Changelog
+
 All notable changes to the "WorkflowTest" project.
 
 ## [2026-02-02] - Strict Mode & Incremental Updates

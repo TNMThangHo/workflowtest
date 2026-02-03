@@ -156,13 +156,13 @@ When generating or updating testcase Excel files, include these mandatory column
 
 **Validation Constraints:**
 
-1.  **Root Object**: Must be a Dictionary with key `"test_cases"` (List). Do NOT return a raw List.
-2.  **Key Casing**: All keys MUST be **lowercase** (e.g., `id`, `title`, `steps`). Do NOT use TitleCase (e.g., `ID`, `Description`).
-3.  **ID Format**: MUST start with `TC-`. Example: `TC-SIGNUP-VAL-001`.
-4.  **Performance Units**:
-    - API Response: `ms` (milliseconds). E.g., `< 5000ms` (NOT `5s`).
-    - Timeouts/Delays: `s` (seconds). E.g., `10s`.
-5.  **Browser Keywords**: If testing compatibility, MUST include the exact browser name in the `Description`/`Title` (Chrome, Firefox, Safari, Edge, Opera Mini).
+1. **Root Object**: Must be a Dictionary with key `"test_cases"` (List). Do NOT return a raw List.
+2. **Key Casing**: All keys MUST be **lowercase** (e.g., `id`, `title`, `steps`). Do NOT use TitleCase (e.g., `ID`, `Description`).
+3. **ID Format**: MUST start with `TC-`. Example: `TC-SIGNUP-VAL-001`.
+4. **Performance Units**:
+   - API Response: `ms` (milliseconds). E.g., `< 5000ms` (NOT `5s`).
+   - Timeouts/Delays: `s` (seconds). E.g., `10s`.
+5. **Browser Keywords**: If testing compatibility, MUST include the exact browser name in the `Description`/`Title` (Chrome, Firefox, Safari, Edge, Opera Mini).
 
 ---
 
@@ -194,8 +194,8 @@ When generating or updating testcase Excel files, include these mandatory column
 
 > **Process**:
 >
-> 1. Read PRD.
+> 1. Read PRD (file attachment by user or file have name include "prd" text uppercase/lowercase).
 > 2. List all headers (e.g., "5. Analytics").
-> 3. Generate Core Functional Tests.
+> 3. Generate Core Functional Tests, UI/UX Tests, Performance Tests, Sercurity Testes by skill testing: BVA, EP, Decision Table, State Transition and Error Guessing
 > 4. **CHECK**: Did I cover Section 5 (Analytics)? -> No? -> **GENERATE NOW**.
 > 5. **CHECK**: Did I cover Rate Limiting? -> No? -> **GENERATE NOW**.

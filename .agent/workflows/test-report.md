@@ -1,25 +1,24 @@
 ---
-description: 📊 Sinh Test Report từ file kết quả Testcase
+description: Generate Test Report from Output (Zero-Click)
 ---
 
 // turbo-all
 
-# WORKFLOW: /test-report - AI Test Report Generator
+# WORKFLOW: /test-report - Automated Test Report Generator
 
-Workflow này phân tích file Excel kết quả test và sinh báo cáo tổng hợp.
+Workflow này **TỰ ĐỘNG HÓA HOÀN TOÀN** việc sinh Báo cáo Kiểm thử.
 
 ## 1. Input Collection
 
-- [ ] Đường dẫn file Excel chứa kết quả test (vd: `output/test_cases.xlsx`).
+- [ ] Đường dẫn file Markdown kết quả test check (vd: `output/tc001.md` hoặc `output/test_cases.md`).
 
-## 2. Analysis & Report Generation
+## 2. Report Generation (Automated)
 
-1.  **Chạy Orchestrator (Report Phase)**:
-    - Dùng tool `run_command` để chạy script phân tích.
-      // turbo
-    - Lệnh: `python test-gen/main.py --step report`
-    - Tool sẽ đọc `output/test_cases.md` và sinh `output/TEST_REPORT.xlsx`.
+1.  **Chạy Lệnh Sinh Báo Cáo**:
+    // turbo
+    - Lệnh: `python -m test-gen.main --step report --input <input_file_path>`
+    - **Lưu ý**: Nếu User chạy lệnh /test-report mà không đưa tham số, hãy tự tìm file mới nhất trong `output/`.
 
 ## 3. Review
 
-- Thông báo cho user file báo cáo Excel đã xong: `output/TEST_REPORT.xlsx`.
+- Thông báo: "Báo cáo đã xong! Check `output/SUMMARY_REPORT.md` và `output/TEST_REPORT.xlsx`".

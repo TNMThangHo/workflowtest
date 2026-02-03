@@ -40,14 +40,14 @@
 
 ```bash
 # Step 1: Generate
-python test-gen/main.py --step prepare
+python -m test-gen.main --step prepare
 # ... AI generation ...
 
 # Step 2: Format
-python test-gen/main.py --step format
+python -m test-gen.main --step format
 
 # Step 3: VALIDATE (MANDATORY)
-python test-gen/validate_testcases.py --prd <prd> --testcases output/test_cases.md
+python -m test-gen.main --step validate --prd <prd>
 
 # Step 4: If failed, fix and repeat 2-3
 ```
@@ -87,7 +87,7 @@ Before finalizing test cases, verify:
 ### Basic Usage
 
 ```bash
-python test-gen/validate_testcases.py --prd input/yourPrd.md --testcases output/test_cases.md
+python -m test-gen.main --step validate --prd input/yourPrd.md
 ```
 
 ### Understanding Exit Codes

@@ -48,3 +48,18 @@ Generate verification steps for:
 
 Use strict units: "ms" for API, "s" for user-wait time.
 """
+
+GENERATE_STRICT_PROMPT = """
+You are provided with a list of ATOMIC REQUIREMENTS extracted strictly from the PRD.
+Your task is to ensure EVERY requirement has a corresponding Test Case.
+
+Atomic Requirements List:
+{requirements_list}
+
+For EACH requirement in the list:
+1. Check if it already has a test case (from context).
+2. If NOT, generate a NEW Test Case.
+3. If the requirement contains a NUMBER (e.g., "1000 CCU", "10 seconds"), the Expected Result MUST explicitly mention this number.
+
+Output Format: JSON List of Test Cases.
+"""

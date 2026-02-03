@@ -4,6 +4,8 @@ import argparse
 import sys
 import os
 
+from .logger import log
+
 def generate_full_factorial(factors):
     """
     Generate Full Factorial combinations (Cartesian Product).
@@ -48,8 +50,8 @@ if __name__ == "__main__":
         with open(args.output, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2)
             
-        print(f"Generated {len(matrix)} scenarios. Saved to {args.output}")
+        log.info(f"Generated {len(matrix)} scenarios. Saved to {args.output}")
         
     except Exception as e:
-        print(f"Error: {e}")
+        log.error(f"Error: {e}")
         sys.exit(1)

@@ -44,7 +44,7 @@ Update test report Excel với kết quả test execution mới mà KHÔNG cần
 // turbo-all 4. **Parse test results:**
 
 ```powershell
-python test-gen/update_report.py --mode=parse --results <results_path> --format <json|csv|excel>
+python -m test-gen.update_report --mode=parse --results <results_path> --format <json|csv|excel>
 ```
 
 Script sẽ:
@@ -57,7 +57,7 @@ Script sẽ:
 5. **Update report với kết quả mới:**
 
    ```powershell
-   python test-gen/update_report.py --mode=update --report <report_path> --parsed-results output/parsed_results.json
+   python -m test-gen.update_report --mode=update --report <report_path> --parsed-results output/parsed_results.json
    ```
 
    Script sẽ:

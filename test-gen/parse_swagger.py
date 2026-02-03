@@ -94,6 +94,8 @@ def parse_swagger(spec):
             
     return simplified_specs
 
+from .logger import log
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Parse Swagger/OpenAPI file to simplified JSON")
     parser.add_argument("--input", required=True, help="Path or URL to Swagger JSON")
@@ -115,8 +117,8 @@ if __name__ == "__main__":
         with open(args.output, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2)
             
-        print(f"Successfully parsed {len(simplified)} endpoints. Saved to {args.output}")
+        log.info(f"Successfully parsed {len(simplified)} endpoints. Saved to {args.output}")
         
     except Exception as e:
-        print(f"Error: {e}")
+        log.error(f"Error: {e}")
         sys.exit(1)

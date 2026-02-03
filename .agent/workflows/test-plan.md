@@ -1,40 +1,30 @@
 ---
-description: 📝 Chỉ sinh Test Plan (Markdown) từ PRD
+description: Generate Test Plan from PRD (Zero-Click)
 ---
 
 // turbo-all
 
-# WORKFLOW: /test-plan - AI Test Plan Generator
+# WORKFLOW: /test-plan - Automated Test Plan Generator
 
-Workflow này chuyên biệt để lập **Test Plan** (Kế hoạch kiểm thử).
+Workflow này **TỰ ĐỘNG HÓA HOÀN TOÀN** việc sinh Test Plan từ PRD.
 
 ## 1. Input Collection
 
-- [ ] Đường dẫn PRD.
+- [ ] Đường dẫn PRD (PDF, MarkDown, Docx) - (Mặc định: `input/*.md` nếu không chỉ định).
 
-## 2. Agent Processing
+## 2. Generate Plan (Automated)
 
-1.  **Đọc PRD**: Hiểu phạm vi và yêu cầu dự án.
-2.  **Lập Test Plan**:
-    - Xác định Scope (In-scope, Out-scope).
-    - Chiến lược kiểm thử (Manual, Auto, API, UI).
-    - Môi trường & Tài nguyên.
-    - Lịch trình & Rủi ro.
+1.  **Đọc Tài Liệu Nguồn**:
+    - `view_file` PRD của User.
+    - `view_file test-gen/templates/test-plan-template.md`.
 
-## 3. Output Generation
+2.  **Sinh Nội Dung (Agent Action)**:
+    - **Nhiệm vụ**: Dựa vào PRD, hãy điền thông tin vào Template Test Plan.
+    - **Yêu cầu**:
+      - Giữ nguyên cấu trúc của Template.
+      - Điền Feature Name, Scope, Environment (lấy từ PRD requirements).
+      - Schedule: Để Placeholder [TBD] nếu chưa có.
+    - **Lưu file**: `output/TEST_PLAN.md`.
 
-1.  **Lưu kết quả JSON**:
-    - Tạo file `output/raw_testplan.json`.
-    - Cấu trúc:
-      ```json
-      {
-        "test_plan": "# Test Plan Title\n\n## Scope..."
-      }
-      ```
-2.  **Chạy Formatter**:
-    // turbo
-    - Lệnh: `python test-gen/format_output.py --input output/raw_testplan.json`
-
-## 4. Review
-
-- Kiểm tra file `output/TEST_PLAN.md`.
+3.  **Review**:
+    - Thông báo cho User: "File Test Plan đã được sinh tự động tại `output/TEST_PLAN.md`. Mời anh review!".

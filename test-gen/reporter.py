@@ -110,15 +110,58 @@ class Reporter:
         df = self.load_data()
         if df.empty: return
 
-        # Simple Stats
-        total = len(df)
-        by_type = df['type'].value_counts() if 'type' in df.columns else pd.Series()
-        by_prio = df['priority'].value_counts() if 'priority' in df.columns else pd.Series()
-
-        md = f"# Test Execution Summary\n\n**Total Cases**: {total}\n\n"
-        md += "## By Type\n" + by_type.to_markdown() + "\n\n"
-        md += "## By Priority\n" + by_prio.to_markdown() + "\n"
+        # 1. Calculate Stats (Correctly handling Checkbox Markdown)
+        # Status column format: "[ ] Pass / [ ] Fail ..."
+        # We need to count based on what is MARKED [x]
         
+        def check_status(row_status, key):
+            # Key e.g., "Pass". Look for "[x] Pass" or "[X] Pass"
+            # Also handle plain text status if reading from Excel/JSON where it's just "Passed"
+            if not isinstance(row_status, str): return False
+            normalized = row_status.lower()
+            if f"[x] {key.lower()}" in normalized: return True
+            if key.lower() in normalized and "[" not in normalized: return True # Plain text
+            return False
+
+        total = len(df)
+        passed = len(df[df['status'].apply(lambda x: check_status(x, "Pass"))])
+        failed = len(df[df['status'].apply(lambda x: check_status(x, "Fail"))])
+        blocked = len(df[df['status'].apply(lambda x: check_status(x, "Block"))])
+        
+        # 2. Check for Template
+        template_path = os.path.join("test-gen", "templates", "test-report-template.md")
+        content = ""
+        
+        if os.path.exists(template_path):
+            log.info(f"📄 Using Template: {template_path}")
+            with open(template_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # 3. Inject Data
+            stats_row = f"| {total} | {passed} | {failed} | {blocked} |"
+            
+            import re
+            # Regex to find an empty table row designed for 4 columns: | | | | |
+            # Handles varying spaces but EXCLUDES newlines to prevent merging rows
+            row_pattern = r'\|[ \t]*\|[ \t]*\|[ \t]*\|[ \t]*\|'
+            
+            if re.search(row_pattern, content):
+                 content = re.sub(row_pattern, stats_row, content, count=1)
+            else:
+                 # If explicit empty row not found, look for likely placeholder or append
+                 # Maybe user provided header but no empty row?
+                 log.warning("Template table empty row not matched.")
+                 
+            # Update Date/Feature
+            from datetime import datetime
+            content = content.replace("- Feature tested:", f"- Feature tested: Signup (Auto-detected)")
+            content = content.replace("- Date:", f"- Date: {datetime.now().strftime('%Y-%m-%d')}")
+            
+        else:
+            log.warning("⚠️ Template not found, using default format.")
+            by_type = df['type'].value_counts() if 'type' in df.columns else pd.Series()
+            content = f"# Test Execution Summary\n\n**Total Cases**: {total}\n\n## By Type\n{by_type.to_markdown()}\n"
+
         with open(output_path, "w", encoding='utf-8') as f:
-            f.write(md)
+            f.write(content)
         log.info(f"✅ Summary MD Generated: {output_path}")

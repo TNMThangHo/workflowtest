@@ -1,58 +1,37 @@
 ---
-description: 🧪 Chỉ sinh Test Cases (Excel) từ PRD
+description: Generate Test Cases from PRD (Zero-Click)
 ---
 
 // turbo-all
 
-# WORKFLOW: /testcase - AI Test Case Generator
+# WORKFLOW: /testcase - Zero-Click Test Case Generator
 
-Workflow này chuyên biệt để sinh **Test Cases** chi tiết và xuất ra file MarkDown.
+Workflow này **TỰ ĐỘNG HÓA TỐI ĐA** từ khâu đọc PRD đến khi ra file Test Case cuối cùng.
 
 ## 1. Input Collection
 
-- [ ] Đường dẫn PRD (PDF, MarkDown, Docx).
-- [ ] Đường dẫn Design (Folder ảnh) - Optional.
+- [ ] Đường dẫn PRD (PDF, MarkDown, Docx) - (Bắt buộc).
 
-## 2. Prepare Context (Automated)
+## 2. Execute Pipeline (Automated - 2 Clicks)
 
-1.  **Chạy Orchestrator (Phase 1)**:
+1.  **Click 1: Khởi tạo (Init)**:
     // turbo
-    - Lệnh: `python test-gen/main.py --step prepare`
-    - Tool sẽ tự động quét `input/` (Swagger, Matrix, PRD) và `docs/references.md`.
-    - Kết quả tổng hợp lưu trong `output/run_context.json`.
+    - Lệnh: `python -m test-gen.main --step init --prd <prd_path>`
+    - Tự động chạy Prepare + Extract trong 1 lệnh.
 
-## 3. Agent Intelligence (Processing)
+2.  **Agent Generates Test Cases**:
+    - **Action**:
+      - Đọc `output/requirements.json`.
+      - Đọc `testRuleset.md`, `best_practices.md`.
+      - **GENERATE**: Viết JSON vào `output/raw_testcases.json`.
+      - **CRITICAL**: Phải bao phủ 100% Atomic Requirements (Functional, Security, Performance, Compatibility).
 
-1.  **Nạp Context**:
-    - `view_file output/run_context.json`.
-    - `view_file` các file PRD.
-    - `view_file docs/references.md` và `docs/test_generation_best_practices.md` (MANDATORY).
-    - `view_file output/technical_specs.json` (Để lấy chính xác MaxLength, Regex, Error Codes).
-    - `view_file output/test_matrix.json` (Để lấy các Scenario tổ hợp).
-
-2.  **Sinh Test Cases (Strict Mode)**:
-    - **Yêu cầu BẮT BUỘC**:
-      - Đọc kỹ `docs/testRuleset.md`.
-      - Test case sinh ra PHẢI bao gồm đủ: Functional, Validation (Boundaries), Security (Injection/Auth), UX, và Matrix Scenarios.
-      - **CRITICAL PRINCIPLE**: ⚠️ **ALWAYS trust source files (PRD, Swagger), NOT verbal communication or assumptions**. Extract EXACT values from files (e.g., "< 1 giây" means 1000ms, not 3000ms).
-      - **Self-Correction**: Trước khi lưu, tự hỏi "Mình đã có case check XSS chưa? Có case check min/max length chưa?". Nếu chưa, hãy bổsung ngay.
-    - Output file: `output/raw_testcases.json`.
-
-## 4. Finalize & Validate (Automated)
-
-1.  **Chạy Orchestrator (Phase 2)**:
+3.  **Click 2: Hoàn thiện (Finish)**:
     // turbo
-    - Lệnh: `python test-gen/main.py --step format`
-    - Tool sinh file `output/test_cases.md`.
+    - Lệnh: `python -m test-gen.main --step finish --prd <prd_path> --filename tc_auto`
+    - Tự động chạy Format + Validate trong 1 lệnh.
 
-2.  **CRITICAL: Run Validation**:
-    // turbo
-    - Lệnh: `python test-gen/validate_testcases.py --prd <prd_path> --testcases output/test_cases.md`
-    - **If validation fails (exit code 1):**
-      - Review reported discrepancies
-      - Fix test cases in `raw_testcases.json`
-      - Re-run format step
-      - Re-run validation until PASS (exit code 0)
+## 3. Finalize
 
-3.  **Review**:
-    - Kiểm tra `output/test_cases.md` (Đây là file kết quả cuối cùng để User sử dụng).
+- Pipeline tự động validate và báo kết quả.
+- Thông báo: "Đã sinh xong Test Case tại `output/tc_auto.md` và đã Validate thành công!".

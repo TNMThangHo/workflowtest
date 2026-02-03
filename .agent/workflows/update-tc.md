@@ -82,7 +82,7 @@ Script sẽ:
 7. **Append new test cases vào Excel:**
 
 ```powershell
-python test-gen/update_testcase.py --mode=merge --excel <excel_path> --new-cases <generated_json>
+python -m test-gen.main --step sync --input <new_cases_json> --target <existing_md_file>
 ```
 
 Script sẽ:

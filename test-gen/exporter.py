@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from typing import List, Dict, Any
+from datetime import datetime
 
 class Exporter:
     def __init__(self, output_dir: str = "output"):
@@ -24,13 +25,16 @@ class Exporter:
         # Ensure standard columns exist
         standard_columns = [
             "id", "module", "type", "priority", "pre_condition", 
-            "description", "steps", "expected_result", "actual_result", "status", "notes"
+            "description", "steps", "expected_result", "actual_result", "status", "notes", "create_date"
         ]
         
         # Add missing columns with empty values
         for col in standard_columns:
             if col not in df.columns:
-                df[col] = "" # Leave empty for manual entry
+                if col == "create_date":
+                    df[col] = datetime.now().strftime('%Y-%m-%d')
+                else:
+                    df[col] = "" # Leave empty for manual entry
 
         # Filter/Order columns
         cols_to_use = [c for c in standard_columns if c in df.columns]
@@ -103,13 +107,16 @@ class Exporter:
             
             # Ensure standard columns exist & Order specific for readability
             standard_columns = [
-                "id", "priority", "title", "steps", "expected_result", "status", "notes"
+                "id", "priority", "title", "steps", "expected_result", "status", "notes", "create_date"
             ]
             
             # Add missing columns
             for col in standard_columns:
                 if col not in df.columns:
-                    df[col] = "" 
+                    if col == "create_date":
+                        df[col] = datetime.now().strftime('%Y-%m-%d')
+                    else:
+                        df[col] = "" 
 
             # Filter columns
             cols_to_use = [c for c in standard_columns if c in df.columns]

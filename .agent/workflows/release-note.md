@@ -1,40 +1,30 @@
 ---
-description: 📢 Chỉ sinh Release Note (Markdown) từ PRD
+description: Generate Release Notes (Zero-Click)
 ---
 
 // turbo-all
 
-# WORKFLOW: /release-note - AI Release Note Generator
+# WORKFLOW: /release-note - Automated Release Note Generator
 
-Workflow này chuyên biệt để viết **Release Note** cho người dùng cuối.
+Workflow này **TỰ ĐỘNG HÓA HOÀN TOÀN** việc sinh Release Note từ PRD hoặc Change Log.
 
 ## 1. Input Collection
 
-- [ ] Đường dẫn PRD (để biết tính năng mới).
-- [ ] (Optional) Danh sách bug đã fix.
+- [ ] Đường dẫn PRD hoặc List thay đổi.
 
-## 2. Agent Processing
+## 2. Generate Notes (Automated)
 
-1.  **Đọc PRD**: Nắm bắt các tính năng mới và giá trị cốt lõi.
-2.  **Viết Release Note**:
-    - Sử dụng ngôn ngữ marketing/user-friendly.
-    - Highlight tính năng nổi bật.
-    - Liệt kê Bug fixes (nếu có).
+1.  **Đọc Tài Liệu Nguồn**:
+    - `view_file` PRD của User.
+    - `view_file test-gen/templates/release-note-template.md`.
 
-## 3. Output Generation
+2.  **Sinh Nội Dung (Agent Action)**:
+    - **Nhiệm vụ**: Tổng hợp các tính năng mới, bug fix (giả định hoặc từ task list) vào Release Note.
+    - **Yêu cầu**:
+      - Version: Lấy từ PRD (nếu có) hoặc để [vX.Y.Z].
+      - Features: Liệt kê các User Stories chính.
+      - Known Issues: Liệt kê các giới hạn Out-scope từ PRD.
+    - **Lưu file**: `output/RELEASE_NOTES.md`.
 
-1.  **Lưu kết quả JSON**:
-    - Tạo file `output/raw_releasenote.json`.
-    - Cấu trúc:
-      ```json
-      {
-        "release_note": "# Release Note v1.0\n\n## 🚀 New Features..."
-      }
-      ```
-2.  **Chạy Formatter**:
-    // turbo
-    - Lệnh: `python test-gen/format_output.py --input output/raw_releasenote.json`
-
-## 4. Review
-
-- Kiểm tra file `output/RELEASE_NOTE.md`.
+3.  **Review**:
+    - Thông báo cho User: "File Release Note đã được sinh tự động tại `output/RELEASE_NOTES.md`.".

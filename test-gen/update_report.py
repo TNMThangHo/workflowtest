@@ -11,14 +11,14 @@ from pathlib import Path
 import shutil
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-import sys
+from .logger import log
 
 def parse_test_results(results_path: str, format_type: str) -> dict:
     """
     Parse test results from various formats
     Returns: dict mapping TestCase ID -> {status, actual_result, evidence}
     """
-    print(f"📖 Parsing test results from: {results_path} (format: {format_type})")
+    log.info(f"📖 Parsing test results from: {results_path} (format: {format_type})")
     
     results_map = {}
     
@@ -59,11 +59,11 @@ def parse_test_results(results_path: str, format_type: str) -> dict:
                     'evidence': row.get('Evidence') or row.get('evidence', '')
                 }
         
-        print(f"✅ Parsed {len(results_map)} test results")
+        log.info(f"✅ Parsed {len(results_map)} test results")
         return results_map
         
     except Exception as e:
-        print(f"❌ Error parsing results: {e}")
+        log.error(f"❌ Error parsing results: {e}")
         sys.exit(1)
 
 def validate_status(status: str) -> str:
@@ -80,7 +80,7 @@ def validate_status(status: str) -> str:
         if status.lower() == valid.lower():
             return valid
     
-    print(f"⚠️ Warning: Invalid status '{status}', using 'Not Executed'")
+    log.warning(f"⚠️ Warning: Invalid status '{status}', using 'Not Executed'")
     return 'Not Executed'
 
 def update_report(report_path: str, results_map: dict, output_dir: str):
@@ -88,11 +88,11 @@ def update_report(report_path: str, results_map: dict, output_dir: str):
     Update test report with new execution results
     Preserves test case descriptions, only updates execution data
     """
-    print("\n🔄 Updating test report with new results...")
+    log.info("\n🔄 Updating test report with new results...")
     
     # Read existing report
     df_report = pd.read_excel(report_path)
-    print(f"📖 Existing report: {len(df_report)} test cases")
+    log.info(f"📖 Existing report: {len(df_report)} test cases")
     
     # Convert TestCase ID to string for matching
     df_report['TestCase ID'] = df_report['TestCase ID'].astype(str)
@@ -147,7 +147,7 @@ def update_report(report_path: str, results_map: dict, output_dir: str):
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     backup_path = Path(output_dir) / f"backup_report_{timestamp}.xlsx"
     shutil.copy2(report_path, backup_path)
-    print(f"💾 Backup created: {backup_path}")
+    log.info(f"💾 Backup created: {backup_path}")
     
     # Save updated report
     output_path = Path(output_dir) / f"updated_report_{timestamp}.xlsx"
@@ -214,7 +214,7 @@ def update_report(report_path: str, results_map: dict, output_dir: str):
                     new_cell.alignment = original_cell.alignment.copy()
             
         except Exception as e:
-            print(f"⚠️ Could not copy all formatting: {e}")
+            log.warning(f"⚠️ Could not copy all formatting: {e}")
         
         # Format Summary sheet
         ws_summary = writer.sheets['Summary']
@@ -227,44 +227,44 @@ def update_report(report_path: str, results_map: dict, output_dir: str):
             cell.font = header_font
             cell.alignment = Alignment(horizontal='center')
     
-    print(f"✅ Updated report saved: {output_path}")
+    log.info(f"✅ Updated report saved: {output_path}")
     
     # Print summary
-    print("\n" + "="*60)
-    print("📊 TEST REPORT UPDATE SUMMARY")
-    print("="*60)
-    print(f"Total test cases: {total}")
-    print(f"Updated: {updated_count} test cases")
-    print(f"Not found in results: {len(not_found_in_results)}")
+    log.info("\n" + "="*60)
+    log.info("📊 TEST REPORT UPDATE SUMMARY")
+    log.info("="*60)
+    log.info(f"Total test cases: {total}")
+    log.info(f"Updated: {updated_count} test cases")
+    log.info(f"Not found in results: {len(not_found_in_results)}")
     if not_found_in_report:
-        print(f"⚠️ TestCase IDs in results but not in report: {len(not_found_in_report)}")
-    print(f"\n📈 Test Results:")
-    print(f"   Pass: {pass_count} ({pass_count/total*100:.1f}%)")
-    print(f"   Fail: {fail_count} ({fail_count/total*100:.1f}%)")
-    print(f"   Skip: {skip_count} ({skip_count/total*100:.1f}%)")
-    print(f"   Blocked: {blocked_count} ({blocked_count/total*100:.1f}%)")
-    print(f"   Not Executed: {not_executed} ({not_executed/total*100:.1f}%)")
-    print(f"\n🎯 Pass Rate: {pass_rate:.2f}%")
-    print(f"🕐 Execution Date: {today}")
-    print(f"\n📁 Files:")
-    print(f"   - Updated: {output_path}")
-    print(f"   - Backup: {backup_path}")
+        log.warning(f"⚠️ TestCase IDs in results but not in report: {len(not_found_in_report)}")
+    log.info(f"\n📈 Test Results:")
+    log.info(f"   Pass: {pass_count} ({pass_count/total*100:.1f}%)")
+    log.info(f"   Fail: {fail_count} ({fail_count/total*100:.1f}%)")
+    log.info(f"   Skip: {skip_count} ({skip_count/total*100:.1f}%)")
+    log.info(f"   Blocked: {blocked_count} ({blocked_count/total*100:.1f}%)")
+    log.info(f"   Not Executed: {not_executed} ({not_executed/total*100:.1f}%)")
+    log.info(f"\n🎯 Pass Rate: {pass_rate:.2f}%")
+    log.info(f"🕐 Execution Date: {today}")
+    log.info(f"\n📁 Files:")
+    log.info(f"   - Updated: {output_path}")
+    log.info(f"   - Backup: {backup_path}")
     
     if not_found_in_results:
-        print(f"\n⚠️ TestCase IDs not found in results (unchanged):")
+        log.info(f"\n⚠️ TestCase IDs not found in results (unchanged):")
         for tc_id in not_found_in_results[:10]:  # Show first 10
-            print(f"   - {tc_id}")
+            log.info(f"   - {tc_id}")
         if len(not_found_in_results) > 10:
-            print(f"   ... and {len(not_found_in_results) - 10} more")
+            log.info(f"   ... and {len(not_found_in_results) - 10} more")
     
     if not_found_in_report:
-        print(f"\n⚠️ TestCase IDs in results but not in report:")
+        log.info(f"\n⚠️ TestCase IDs in results but not in report:")
         for tc_id in not_found_in_report[:10]:
-            print(f"   - {tc_id}")
+            log.info(f"   - {tc_id}")
         if len(not_found_in_report) > 10:
-            print(f"   ... and {len(not_found_in_report) - 10} more")
+            log.info(f"   ... and {len(not_found_in_report) - 10} more")
     
-    print("="*60)
+    log.info("="*60)
     
     return str(output_path)
 
@@ -283,7 +283,7 @@ def main():
     
     if args.mode == 'parse':
         if not args.results or not args.format:
-            print("❌ Error: --results and --format are required for parse mode")
+            log.error("❌ Error: --results and --format are required for parse mode")
             sys.exit(1)
         
         results_map = parse_test_results(args.results, args.format)
@@ -295,11 +295,11 @@ def main():
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(results_map, f, ensure_ascii=False, indent=2)
         
-        print(f"✅ Parsed results saved to: {output_path}")
+        log.info(f"✅ Parsed results saved to: {output_path}")
         
     elif args.mode == 'update':
         if not args.report or not args.parsed_results:
-            print("❌ Error: --report and --parsed-results are required for update mode")
+            log.error("❌ Error: --report and --parsed-results are required for update mode")
             sys.exit(1)
         
         # Load parsed results

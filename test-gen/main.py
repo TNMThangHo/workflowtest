@@ -33,7 +33,7 @@ def run_prepare():
     
     log.info("✅ PREPARE Complete.")
 
-def run_format(prd=None):
+def run_format(prd=None, filename=None):
     log.info("🚀 Starting Phase: FORMAT...")
     
     raw_json = os.path.join("output", "raw_testcases.json")
@@ -43,7 +43,10 @@ def run_format(prd=None):
 
     # Call existing legacy formatter for now, or we could refactor it too.
     # Keeping legacy call to minimize risk, but wrapped in new logging.
-    cmd = f"{sys.executable} test-gen/format_output.py --input {raw_json}"
+    cmd = f"{sys.executable} -m test-gen.format_output --input {raw_json}"
+    if filename:
+        cmd += f" --filename {filename}"
+    
     if prd:
         # If naming logic is needed
         pass 
@@ -94,21 +97,76 @@ def run_sync(new_path, existing_path):
     upd.sync(existing_path)
     return True
 
+def run_add(title, steps, expected, priority):
+    log.info("🚀 Starting Phase: ADD TEST CASE...")
+    from .manage import run_add_testcase
+    run_add_testcase(title, steps, expected, priority)
+    return True
+
+def run_extract(prd_path):
+    log.info("🚀 Starting Phase: STRICT EXTRACTION...")
+    from .extractor import run_extraction
+    run_extraction(prd_path)
+    return True
+
 def main():
     setup_dirs()
     
     parser = argparse.ArgumentParser(description="Test Gen Orchestrator v2")
-    parser.add_argument("--step", choices=["prepare", "format", "validate", "report", "sync"], required=True)
+    parser.add_argument("--step", choices=["prepare", "format", "validate", "report", "sync", "add", "extract", "init", "finish"], required=True)
     parser.add_argument("--prd", help="Path to PRD file")
     parser.add_argument("--input", help="Input file for Report/Sync")
     parser.add_argument("--target", help="Target file for Sync")
+    parser.add_argument("--filename", help="Custom output filename for Format step")
+    
+    # Args for Add Step
+    parser.add_argument("--title", help="Test Case Title")
+    parser.add_argument("--steps", help="Steps (semicolon separated)")
+    parser.add_argument("--expected", help="Expected Result")
+    parser.add_argument("--priority", default="P2", help="Priority")
     
     args = parser.parse_args()
     
     if args.step == "prepare":
         run_prepare()
     elif args.step == "format":
-        run_format(args.prd)
+        run_format(args.prd, args.filename)
+    elif args.step == "extract":
+        if not args.prd:
+            log.error("❌ --prd is required for extraction")
+            sys.exit(1)
+        run_extract(args.prd)
+    elif args.step == "init":
+        # Combined Step: Prepare + Extract
+        if not args.prd:
+            log.error("❌ --prd is required for init step")
+            sys.exit(1)
+        run_prepare()
+        run_extract(args.prd)
+    elif args.step == "finish":
+        # Combined Step: Format + Validate (+ Optional Report)
+        if not args.prd:
+            log.error("❌ --prd is required for finish step")
+            sys.exit(1)
+        
+        # 1. Format
+        fmt_success = run_format(args.prd, args.filename)
+        if not fmt_success: sys.exit(1)
+            
+        # 2. Validate
+        val_success = run_validate(args.prd)
+        if not val_success: 
+            log.warning("⚠️ Validation failed. Attempting Auto-Fix logic could go here.")
+            # We don't exit here to allow Report to run if needed, or strictly exit?
+            # User wants automation, so failing hard stops the flow. 
+            # Let's keep strict for now but log distinct error.
+            sys.exit(1)
+            
+    elif args.step == "add":
+        if not args.title:
+            log.error("❌ --title is required for add step")
+            sys.exit(1)
+        run_add(args.title, args.steps, args.expected, args.priority)
     elif args.step == "validate":
         if not args.prd:
             log.error("❌ Validations requires --prd argument")

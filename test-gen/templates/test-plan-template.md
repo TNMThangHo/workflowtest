@@ -1,41 +1,97 @@
-# Test Plan: [Project Name]
+# Test Plan: [Project Name]**Project Name:** [Name]
+
+**Version:** [v1.0]
+**Prepared by:** [Name]
+**Date:** [YYYY-MM-DD]
 
 ## 1. Introduction
 
-- **Objective**: Define the scope, approach, resources, and schedule for testing the [Feature Name].
-- **Scope**:
-  - In-Scope: [List features to be tested]
-  - Out-Scope: [List excluded features]
+### 1.1 Purpose
 
-## 2. Test Strategy
+Describe the scope, strategy, and approach for testing this project.
 
-- **Test Levels**: Unit, Integration, System, Acceptance.
-- **Test Types**: Functional, UI/UX, Security, Performance, Compatibility.
-- **Tools**:
-  - Test Management: [Tool Name]
-  - Automation: [Tool Name]
-  - Defect Tracking: [Tool Name]
+### 1.2 Project Scope
 
-## 3. Test Environment
+Features must have been approved by BA/PO
 
-- **Hardware**: [Requirements]
-- **Software**: Browser (Chrome, Firefox, Safari), OS (Windows, macOS).
-- **Test Data**: [Description of test data]
+### 1.3 Reference Documents
 
-## 4. Schedule & Resources
+- SRS
+- Design Document
+- User Stories...
 
-- **Timeline**: Start [Date] - End [Date].
-- **Roles**:
-  - QA Engineer: Execute tests, report bugs.
-  - Developer: Fix bugs.
+## 2. Test Scope
 
-## 5. Deliverables
+### 2.1 In Scope
 
-- Test Cases (Signed off).
-- Defect Reports.
-- Test Summary Report.
+Features and modules covered in this test cycle.
 
-## 6. Entry & Exit Criteria
+### 2.2 Out of Scope
 
-- **Entry**: Code frozen, Environment ready.
-- **Exit**: 100% Critical bugs fixed, 95% Test cases passed.
+Features not included in the current testing effort.
+
+## 3. Test Strategy
+
+### 3.1 Testing Levels
+
+- Unit Testing
+- Integration Testing
+- System Testing
+- User Acceptance Testing (UAT)
+
+### 3.2 Testing Types
+
+- Functional Testing
+- UI/UX Testing
+- Regression Testing
+- Smoke/Sanity Testing
+- Performance Testing (if applicable)
+- Security Testing
+
+## 4. Test Environment
+
+- **URL / Build:** [URL]
+- **OS / Browsers / Devices:** [OS/Browsers/Devices] The requirements for the devices, operating systems, and browsers on which the project needs to run.
+- **Test Data:**
+  Data used for testing on the project
+- **Tools:** Postman, BrowserStack, JMeter, etc.
+
+## 5. Test Schedule
+
+- **Test Start Date:** [YYYY-MM-DD]
+- **Test End Date:** [YYYY-MM-DD]
+- **Regression cycles:** [Number of cycles]
+
+## 6. Resources & Roles
+
+- **QA Lead:** [Name]
+- **Tester(s):** [Name/Name/...]
+- **Supporting Developer:** [Name/Name/...]
+- **BA/PO:** [Name/Name/...]
+
+## 7. Risks & Mitigation
+
+- **Risk:** Lack of documentation → **Mitigation:** Align with BA/PO.
+- **Risk:** Unstable build → **Mitigation:** Freeze version for UAT.
+- **Risk:** Missing test data → **Mitigation:** Prepare data beforehand.
+
+## 8. Entry & Exit Criteria
+
+### 8.1 Entry Criteria
+
+- Build deployed to test environment.
+- Requirements are approved and clear.
+- Test data is prepared.
+
+### 8.2 Exit Criteria
+
+- All test cases executed.
+- Pass rate meets project requirement (e.g., ≥ 95%).
+- No Critical/High bugs remain.
+
+## 9. Deliverables
+
+- Test Cases [URL]
+- Test Run Report [URL]
+- Bug Report (via Jira or tracking tool) [URL]
+- Test Summary Report [URL]

@@ -1,129 +1,125 @@
 import argparse
+import sys
 import os
 import subprocess
-import sys
 import json
+from .logger import log, setup_logger
+from .markdown_parser import PRDParser
 
-def run_cmd(command):
-    """Run a shell command and print status."""
-    print(f"🔧 [Exec] {command}")
-    try:
-        # Use shell=True to handle python command on Windows vs Linux similarly
-        result = subprocess.run(command, shell=True, check=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Error: {e}")
-        return False
+def setup_dirs():
+    if not os.path.exists("output"):
+        os.makedirs("output")
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
 
-def step_prepare():
-    print("🚀 Starting Phase 1: PREPARE (Context Collection)...")
+def run_prepare():
+    log.info("🚀 Starting Phase: PREPARE...")
     
-    context_report = {
-        "specs": False,
-        "matrix": False,
-        "prd": False
-    }
-
-    # 1. Check & Run Swagger Parser
-    swagger_path = os.path.join("input", "swagger.json")
-    if os.path.exists(swagger_path):
-        print(f"   -> Found Swagger: {swagger_path}")
-        if run_cmd(f"python test-gen/parse_swagger.py --input {swagger_path} --output output/technical_specs.json"):
-            context_report["specs"] = True
-    else:
-        # Check for mock
-        mock_swagger = os.path.join("input", "mock_swagger.json")
-        if os.path.exists(mock_swagger):
-            print(f"   -> Found Mock Swagger: {mock_swagger}")
-            if run_cmd(f"python test-gen/parse_swagger.py --input {mock_swagger} --output output/technical_specs.json"):
-                context_report["specs"] = True
-
-    # 2. Check & Run Matrix Generator
-    matrix_input = os.path.join("input", "matrix_factors.json")
-    if os.path.exists(matrix_input):
-        print(f"   -> Found Matrix Definition: {matrix_input}")
-        if run_cmd(f"python test-gen/test_matrix.py --input {matrix_input} --output output/test_matrix.json"):
-             context_report["matrix"] = True
-    else:
-         # Check for mock
-        mock_matrix = os.path.join("input", "mock_matrix.json")
-        if os.path.exists(mock_matrix):
-            print(f"   -> Found Mock Matrix: {mock_matrix}")
-            if run_cmd(f"python test-gen/test_matrix.py --input {mock_matrix} --output output/test_matrix.json"):
-                context_report["matrix"] = True
-
-    # 3. Check PRD & References
-    context_report["prd_files"] = []
+    context = {"prd_files": []}
     
-    # Check for references.md
-    ref_path = os.path.join("docs", "references.md")
-    if os.path.exists(ref_path):
-        context_report["references"] = True
-        print(f"   -> Found Knowledge Base: {ref_path}")
-
-    # Check for PRDs
+    # Check input dir
     if os.path.exists("input"):
         for f in os.listdir("input"):
             if f.endswith(".md"):
-                context_report["prd_files"].append(os.path.join("input", f))
-                context_report["prd"] = True
-        if context_report["prd"]:
-             print(f"   -> Found {len(context_report['prd_files'])} PRD document(s).")
-
-    # Save Context for Agent
+                fpath = os.path.join("input", f)
+                parser = PRDParser(fpath)
+                if parser.run():
+                    context["prd_files"].append(fpath)
+                    log.info(f"   -> Analyzed PRD: {f}")
+    
+    # Save context
     with open("output/run_context.json", "w") as f:
-        json.dump(context_report, f, indent=2)
+        json.dump(context, f, indent=2)
     
-    print("\n✅ PREPARE Phase Complete. Ready for AI Generation.")
-    print(json.dumps(context_report, indent=2))
+    log.info("✅ PREPARE Complete.")
 
-def step_format(prd=None):
-    print("🚀 Starting Phase: FORMAT (JSON -> Markdown)...")
+def run_format(prd=None):
+    log.info("🚀 Starting Phase: FORMAT...")
     
-    # 1. Format JSON -> Markdown
     raw_json = os.path.join("output", "raw_testcases.json")
-    if os.path.exists(raw_json):
-        print("   -> Formatting Test Cases...")
-        cmd = f"python test-gen/format_output.py --input {raw_json}"
+    if not os.path.exists(raw_json):
+        log.error("❌ raw_testcases.json not found.")
+        return False
+
+    # Call existing legacy formatter for now, or we could refactor it too.
+    # Keeping legacy call to minimize risk, but wrapped in new logging.
+    cmd = f"{sys.executable} test-gen/format_output.py --input {raw_json}"
+    if prd:
+        # If naming logic is needed
+        pass 
+    
+    try:
+        subprocess.run(cmd, shell=True, check=True)
+        log.info("✅ FORMAT Complete.")
+        return True
+    except subprocess.CalledProcessError as e:
+        log.error(f"❌ Format failed: {e}")
+        return False
+
+def run_validate(prd_path):
+    log.info("🚀 Starting Phase: VALIDATE...")
+    
+    testcases_path = "output/raw_testcases.json" # Validate JSON source
+    if not os.path.exists(testcases_path):
+        log.warning("JSON not found, trying Markdown...")
+        testcases_path = "output/test_cases.md"
+    
+    # Import here to avoid circular imports if any, or just good practice
+    from .validator import run_validate as validate_logic
+    
+    success = validate_logic(prd_path, testcases_path)
+    if success:
+        log.info("✅ VALIDATION PASSED.")
+        return True
+    else:
+        log.error("❌ VALIDATION FAILED.")
+        return False
+
+def run_report(md_path):
+    log.info("🚀 Starting Phase: REPORT...")
+    if not os.path.exists(md_path):
+        log.error(f"❌ Input file not found: {md_path}")
+        return False
         
-        # Smart Naming: If PRD is provided, use its name for the output file
-        if prd:
-            basename = os.path.splitext(os.path.basename(prd))[0]
-            output_name = f"{basename}_testcases.md"
-            cmd += f" --filename {output_name}"
-            print(f"   ℹ️  Targeting output file: {output_name}")
-            
-        run_cmd(cmd)
-        print("\n✅ FORMAT Complete.")
-    else:
-        print("❌ output/raw_testcases.json not found. Did AI generate it?")
+    from .reporter import Reporter
+    rep = Reporter(md_path)
+    rep.generate_excel("output/TEST_REPORT.xlsx")
+    rep.generate_summary_md()
+    return True
 
-def step_report():
-    print("🚀 Starting Phase: REPORT (Markdown -> Excel)...")
+def run_sync(new_path, existing_path):
+    log.info("🚀 Starting Phase: SYNC/UPDATE...")
+    from .updater import Updater
+    upd = Updater(new_path, existing_path)
+    upd.sync(existing_path)
+    return True
 
-    # 2. Analyze Markdown -> Excel Report
-    test_cases_md = os.path.join("output", "test_cases.md")
-    if os.path.exists(test_cases_md):
-        print("   -> Generating Excel Report...")
-        run_cmd(f"python test-gen/analyze_results.py --input {test_cases_md} --output-excel output/TEST_REPORT.xlsx")
-        print("\n✅ REPORT Complete. Check output/TEST_REPORT.xlsx")
-    else:
-        print("❌ output/test_cases.md not found. Generate it first!")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Test Gen Orchestrator")
-    parser.add_argument("--step", choices=["prepare", "format", "report"], required=True, help="Workflow step to execute")
-    parser.add_argument("--prd", help="Path to PRD file (for naming outputs)", default=None)
+def main():
+    setup_dirs()
+    
+    parser = argparse.ArgumentParser(description="Test Gen Orchestrator v2")
+    parser.add_argument("--step", choices=["prepare", "format", "validate", "report", "sync"], required=True)
+    parser.add_argument("--prd", help="Path to PRD file")
+    parser.add_argument("--input", help="Input file for Report/Sync")
+    parser.add_argument("--target", help="Target file for Sync")
     
     args = parser.parse_args()
     
-    # Ensure output dir exists
-    if not os.path.exists("output"):
-        os.makedirs("output")
-
     if args.step == "prepare":
-        step_prepare()
+        run_prepare()
     elif args.step == "format":
-        step_format(args.prd)
+        run_format(args.prd)
+    elif args.step == "validate":
+        if not args.prd:
+            log.error("❌ Validations requires --prd argument")
+            sys.exit(1)
+        if not run_validate(args.prd):
+            sys.exit(1)
     elif args.step == "report":
-        step_report()
+        input_file = args.input or "output/test_cases.md"
+        run_report(input_file)
+    elif args.step == "sync":
+        run_sync(args.input, args.target)
+
+if __name__ == "__main__":
+    main()

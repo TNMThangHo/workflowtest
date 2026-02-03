@@ -1,5 +1,0 @@
-{
-  "Role": ["Admin", "User", "Guest"],
-  "Status": ["Active", "Inactive"],
-  "Browser": ["Chrome", "Firefox"]
-}

@@ -92,12 +92,12 @@ Màn hình Đăng ký bao gồm các trường sau:
 
 ### 4.2. Hiệu năng (Performance)
 
-- Thời gian phản hồi API đăng ký: < 5 giây.
+- Thời gian phản hồi API đăng ký: < 1 giây.
 - Email xác thực phải được gửi đi trong vòng 10 giây sau khi đăng ký.
 
 ### 4.3. Tương thích (Compatibility)
 
-- Hoạt động tốt trên các trình duyệt: Chrome, Firefox, Safari, Edge, Operamini
+- Hoạt động tốt trên các trình duyệt: Chrome, Firefox, Safari, Edge
 - Responsive trên Mobile, Tablet, Desktop.
 
 ---

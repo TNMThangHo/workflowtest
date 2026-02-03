@@ -113,11 +113,12 @@ def main():
     setup_dirs()
     
     parser = argparse.ArgumentParser(description="Test Gen Orchestrator v2")
-    parser.add_argument("--step", choices=["prepare", "format", "validate", "report", "sync", "add", "extract", "init", "finish"], required=True)
-    parser.add_argument("--prd", help="Path to PRD file")
-    parser.add_argument("--input", help="Input file for Report/Sync")
-    parser.add_argument("--target", help="Target file for Sync")
-    parser.add_argument("--filename", help="Custom output filename for Format step")
+    parser.add_argument("--step", choices=["prepare", "format", "validate", "report", "sync", "add", "extract", "init", "finish", "update-report"], required=True)
+    parser.add_argument("--prd", type=str, help="Path to PRD file")
+    parser.add_argument("--filename", type=str, default="tc_001", help="Output filename for test cases")
+    parser.add_argument("--input", type=str, help="Input file for report/sync")
+    parser.add_argument("--target", type=str, help="Target file for sync")
+    parser.add_argument("--report-file", type=str, help="Existing report file to update")
     
     # Args for Add Step
     parser.add_argument("--title", help="Test Case Title")
@@ -127,24 +128,13 @@ def main():
     
     args = parser.parse_args()
     
-    if args.step == "prepare":
-        run_prepare()
-    elif args.step == "format":
-        run_format(args.prd, args.filename)
-    elif args.step == "extract":
-        if not args.prd:
-            log.error("❌ --prd is required for extraction")
-            sys.exit(1)
-        run_extract(args.prd)
-    elif args.step == "init":
-        # Combined Step: Prepare + Extract
+    if args.step == "init":
         if not args.prd:
             log.error("❌ --prd is required for init step")
             sys.exit(1)
         run_prepare()
         run_extract(args.prd)
     elif args.step == "finish":
-        # Combined Step: Format + Validate (+ Optional Report)
         if not args.prd:
             log.error("❌ --prd is required for finish step")
             sys.exit(1)
@@ -162,11 +152,15 @@ def main():
             # Let's keep strict for now but log distinct error.
             sys.exit(1)
             
-    elif args.step == "add":
-        if not args.title:
-            log.error("❌ --title is required for add step")
+    elif args.step == "prepare":
+        run_prepare()
+    elif args.step == "extract":
+        if not args.prd:
+            log.error("❌ --prd is required for extraction")
             sys.exit(1)
-        run_add(args.title, args.steps, args.expected, args.priority)
+        run_extract(args.prd)
+    elif args.step == "format":
+        run_format(args.prd, args.filename)
     elif args.step == "validate":
         if not args.prd:
             log.error("❌ Validations requires --prd argument")
@@ -176,8 +170,21 @@ def main():
     elif args.step == "report":
         input_file = args.input or "output/test_cases.md"
         run_report(input_file)
+    elif args.step == "update-report":
+        from .update_report import run_update_report
+        if not args.input:
+            log.error("❌ --input required for update-report")
+            sys.exit(1)
+        success = run_update_report(args.input, args.report_file)
+        if not success:
+            sys.exit(1)
     elif args.step == "sync":
         run_sync(args.input, args.target)
+    elif args.step == "add":
+        if not args.title:
+            log.error("❌ --title is required for add step")
+            sys.exit(1)
+        run_add(args.title, args.steps, args.expected, args.priority)
 
 if __name__ == "__main__":
     main()

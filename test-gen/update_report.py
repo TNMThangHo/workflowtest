@@ -1,312 +1,236 @@
 """
-Update Test Report Script - Incremental report updates
-Updates test execution results without regenerating entire report
+Update Test Report Module
+Automatically generate markdown report from test case results
 """
 
-import pandas as pd
-import json
-import argparse
-from datetime import datetime
+import re
+import sys
 from pathlib import Path
-import shutil
-from openpyxl import load_workbook
-from openpyxl.styles import Font, PatternFill, Alignment
+from datetime import datetime
 from .logger import log
 
-def parse_test_results(results_path: str, format_type: str) -> dict:
-    """
-    Parse test results from various formats
-    Returns: dict mapping TestCase ID -> {status, actual_result, evidence}
-    """
-    log.info(f"📖 Parsing test results from: {results_path} (format: {format_type})")
-    
-    results_map = {}
-    
-    try:
-        if format_type == 'json':
-            with open(results_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            # Handle both list and dict formats
-            if isinstance(data, list):
-                for item in data:
-                    tc_id = item.get('testcase_id') or item.get('TestCase ID')
-                    results_map[tc_id] = {
-                        'status': item.get('status') or item.get('Status'),
-                        'actual_result': item.get('actual_result') or item.get('Actual Result'),
-                        'evidence': item.get('evidence') or item.get('Evidence', '')
-                    }
-            else:
-                # Assume dict with testcase_id as keys
-                for tc_id, data in data.items():
-                    results_map[tc_id] = {
-                        'status': data.get('status'),
-                        'actual_result': data.get('actual_result'),
-                        'evidence': data.get('evidence', '')
-                    }
-        
-        elif format_type in ['csv', 'excel']:
-            if format_type == 'csv':
-                df = pd.read_csv(results_path)
-            else:
-                df = pd.read_excel(results_path)
-            
-            for _, row in df.iterrows():
-                tc_id = str(row.get('TestCase ID') or row.get('testcase_id'))
-                results_map[tc_id] = {
-                    'status': row.get('Status') or row.get('status'),
-                    'actual_result': row.get('Actual Result') or row.get('actual_result'),
-                    'evidence': row.get('Evidence') or row.get('evidence', '')
-                }
-        
-        log.info(f"✅ Parsed {len(results_map)} test results")
-        return results_map
-        
-    except Exception as e:
-        log.error(f"❌ Error parsing results: {e}")
-        sys.exit(1)
 
-def validate_status(status: str) -> str:
-    """Validate and normalize status values"""
-    valid_statuses = ['Pass', 'Fail', 'Skip', 'Blocked']
-    
-    if pd.isna(status):
-        return 'Not Executed'
-    
-    status = str(status).strip()
-    
-    # Case-insensitive matching
-    for valid in valid_statuses:
-        if status.lower() == valid.lower():
-            return valid
-    
-    log.warning(f"⚠️ Warning: Invalid status '{status}', using 'Not Executed'")
-    return 'Not Executed'
-
-def update_report(report_path: str, results_map: dict, output_dir: str):
+def parse_markdown_status(md_content: str) -> list[dict]:
     """
-    Update test report with new execution results
-    Preserves test case descriptions, only updates execution data
+    Parse test case markdown to extract status and details
+    
+    Format: [x] Pass / [ ] Fail / [ ] Skip / [ ] Blocked
     """
-    log.info("\n🔄 Updating test report with new results...")
+    results = []
     
-    # Read existing report
-    df_report = pd.read_excel(report_path)
-    log.info(f"📖 Existing report: {len(df_report)} test cases")
+    # Pattern to match table rows
+    rows = md_content.split('\n')
     
-    # Convert TestCase ID to string for matching
-    df_report['TestCase ID'] = df_report['TestCase ID'].astype(str)
-    
-    # Track statistics
-    updated_count = 0
-    not_found_in_results = []
-    not_found_in_report = []
-    
-    today = datetime.now().strftime('%Y-%m-%d')
-    
-    # Update rows with new results
-    for idx, row in df_report.iterrows():
-        tc_id = row['TestCase ID']
+    for row in rows:
+        if '|' not in row or row.startswith('|---') or row.startswith('| :--'):
+            continue
+            
+        # Extract columns
+        cols = [c.strip() for c in row.split('|')]
+        if len(cols) < 3:
+            continue
+            
+        # Find TestCase ID
+        tc_id = None
+        priority = ""
+        title = ""
         
-        if tc_id in results_map:
-            # Update execution data
-            result = results_map[tc_id]
-            df_report.at[idx, 'Status'] = validate_status(result['status'])
-            df_report.at[idx, 'Actual Result'] = result['actual_result']
+        for i, col in enumerate(cols):
+            match = re.search(r'TC-[\w]+-[\w]+-\d+|TC\d{3}', col)
+            if match:
+                tc_id = match.group()
+                # Get priority and title from adjacent columns
+                if i + 1 < len(cols):
+                    priority = cols[i + 1]
+                if i + 2 < len(cols):
+                    title = cols[i + 2]
+                break
+        
+        if not tc_id:
+            continue
             
-            if 'Evidence' in df_report.columns:
-                df_report.at[idx, 'Evidence'] = result['evidence']
+        # Extract status from checkbox format
+        status_col = next((c for c in cols if '[x]' in c.lower() or '[ ]' in c), None)
+        if not status_col:
+            continue
             
-            if 'Execution Date' in df_report.columns:
-                df_report.at[idx, 'Execution Date'] = today
-            elif 'Last Execution Date' in df_report.columns:
-                df_report.at[idx, 'Last Execution Date'] = today
-            
-            updated_count += 1
+        # Determine status
+        status_lower = status_col.lower()
+        if '[x] pass' in status_lower:
+            status = 'Pass'
+        elif '[x] fail' in status_lower:
+            status = 'Fail'
+        elif '[x] skip' in status_lower:
+            status = 'Skip'
+        elif '[x] blocked' in status_lower:
+            status = 'Blocked'
         else:
-            not_found_in_results.append(tc_id)
+            status = 'Not Run'
+            
+        results.append({
+            'testcase_id': tc_id,
+            'priority': priority,
+            'title': title,
+            'status': status,
+            'execution_date': datetime.now().strftime('%Y-%m-%d')
+        })
     
-    # Check for test results not in report
-    for tc_id in results_map.keys():
-        if tc_id not in df_report['TestCase ID'].values:
-            not_found_in_report.append(tc_id)
+    log.info(f"Parsed {len(results)} test results from markdown")
+    return results
+
+
+def generate_markdown_report(results: list[dict], template_path: str = "test-gen/templates/test-report-template.md") -> str:
+    """
+    Generate markdown report from test results using template
+    
+    Args:
+        results: List of test results with testcase_id, status, etc.
+        template_path: Path to template file
+        
+    Returns:
+        Markdown report content
+    """
+    # Read template
+    template_file = Path(template_path)
+    if not template_file.exists():
+        log.warning(f"Template not found: {template_path}, using default structure")
+        # Use template structure
+        template_content = template_file.read_text(encoding='utf-8') if template_file.exists() else ""
     
     # Calculate statistics
-    status_counts = df_report['Status'].value_counts().to_dict()
-    total = len(df_report)
-    
-    pass_count = status_counts.get('Pass', 0)
-    fail_count = status_counts.get('Fail', 0)
-    skip_count = status_counts.get('Skip', 0)
-    blocked_count = status_counts.get('Blocked', 0)
-    not_executed = status_counts.get('Not Executed', 0)
+    total = len(results)
+    pass_count = sum(1 for r in results if r['status'] == 'Pass')
+    fail_count = sum(1 for r in results if r['status'] == 'Fail')
+    skip_count = sum(1 for r in results if r['status'] == 'Skip')
+    blocked_count = sum(1 for r in results if r['status'] == 'Blocked')
     
     pass_rate = (pass_count / total * 100) if total > 0 else 0
     
-    # Create backup
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    backup_path = Path(output_dir) / f"backup_report_{timestamp}.xlsx"
-    shutil.copy2(report_path, backup_path)
-    log.info(f"💾 Backup created: {backup_path}")
+    # Build report using template structure
+    report = f"""# Test Report
+
+## 1. Summary
+
+- Feature tested: User Registration
+- Test cycle: Cycle 1
+- Date: {datetime.now().strftime('%Y-%m-%d')}
+
+## 2. Test Execution Result
+
+| Total TC | Passed | Failed | Blocked | Skip |
+| -------- | ------ | ------ | ------- | ---- |
+| {total}  | {pass_count} | {fail_count} | {blocked_count} | {skip_count} |
+
+**Pass Rate:** {pass_rate:.1f}%
+
+## 3. Detailed Test Results
+
+| TestCase ID | Title | Priority | Status | Notes |
+| :---------- | :---- | :------- | :----- | :---- |
+"""
     
-    # Save updated report
-    output_path = Path(output_dir) / f"updated_report_{timestamp}.xlsx"
-    
-    with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-        # Write main test results
-        df_report.to_excel(writer, index=False, sheet_name='Test Results')
+    # Add test results
+    for r in results:
+        status_emoji = {
+            'Pass': '✅',
+            'Fail': '❌',
+            'Skip': '⏭️',
+            'Blocked': '🚫',
+            'Not Run': '⚪'
+        }.get(r['status'], '⚪')
         
-        # Create summary sheet
-        summary_data = {
-            'Metric': [
-                'Total Test Cases',
-                'Updated in This Run',
-                'Pass',
-                'Fail',
-                'Skip',
-                'Blocked',
-                'Not Executed',
-                'Pass Rate (%)',
-                'Execution Date'
-            ],
-            'Value': [
-                total,
-                updated_count,
-                pass_count,
-                fail_count,
-                skip_count,
-                blocked_count,
-                not_executed,
-                f"{pass_rate:.2f}%",
-                today
-            ]
+        report += f"| {r['testcase_id']} | {r.get('title', '')} | {r.get('priority', '')} | {status_emoji} {r['status']} | |\n"
+    
+    report += f"""
+## 4. Defect Summary
+
+| Bug ID | Severity | Status | Description |
+| ------ | -------- | ------ | ----------- |
+| TBD    | -        | -      | No bugs reported yet |
+
+## 5. Key Findings
+
+- {pass_count} test cases passed successfully
+- {fail_count} test cases failed
+- {blocked_count} test cases blocked
+- {skip_count} test cases skipped
+
+## 6. Risks & Recommendations
+
+- Review failed test cases and create bug tickets
+- Re-test blocked cases after dependencies resolved
+"""
+    
+    return report
+
+
+def run_update_report(testcase_file: str, report_file: str = None):
+    """
+    Main function to generate markdown report from test case markdown
+    
+    Args:
+        testcase_file: Path to test case markdown with status
+        report_file: Output path for markdown report (default: output/UPDATED_TEST_REPORT.md)
+    """
+    log.info("Starting test report generation...")
+    
+    # Read markdown file
+    tc_path = Path(testcase_file)
+    if not tc_path.exists():
+        log.error(f"Test case file not found: {testcase_file}")
+        print(f"❌ File not found: {testcase_file}")
+        return False
+    
+    md_content = tc_path.read_text(encoding='utf-8')
+    
+    # Parse status
+    results = parse_markdown_status(md_content)
+    
+    if not results:
+        log.warning("No test results found in markdown")
+        print("⚠️ No test results found in markdown file")
+        return False
+    
+    # Generate report
+    try:
+        report_content = generate_markdown_report(results)
+        
+        # Determine output path
+        if not report_file:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            report_file = f"output/UPDATED_TEST_REPORT_{timestamp}.md"
+        
+        output_path = Path(report_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Write report
+        output_path.write_text(report_content, encoding='utf-8')
+        log.info(f"Report generated: {output_path}")
+        
+        # Calculate and print statistics
+        total = len(results)
+        stats = {
+            'Pass': sum(1 for r in results if r['status'] == 'Pass'),
+            'Fail': sum(1 for r in results if r['status'] == 'Fail'),
+            'Skip': sum(1 for r in results if r['status'] == 'Skip'),
+            'Blocked': sum(1 for r in results if r['status'] == 'Blocked'),
         }
-        df_summary = pd.DataFrame(summary_data)
-        df_summary.to_excel(writer, index=False, sheet_name='Summary')
         
-        # Apply formatting
-        workbook = writer.book
+        print(f"\n✅ Test Report Generated!")
+        print(f"\n📊 Statistics:")
+        print(f"   - Total test cases: {total}")
+        print(f"\n📈 Test Results:")
+        for status, count in stats.items():
+            pct = (count / total * 100) if total > 0 else 0
+            print(f"   - {status}: {count} ({pct:.1f}%)")
         
-        # Format Test Results sheet
-        ws_results = writer.sheets['Test Results']
+        pass_rate = (stats['Pass'] / total * 100) if total > 0 else 0
+        print(f"\n🎯 Pass Rate: {pass_rate:.1f}%")
+        print(f"\n📁 Output: {output_path}")
         
-        try:
-            # Copy formatting from original
-            original_wb = load_workbook(report_path)
-            original_ws = original_wb.active
-            
-            # Copy column widths
-            for col_letter in original_ws.column_dimensions:
-                if col_letter in ws_results.column_dimensions:
-                    ws_results.column_dimensions[col_letter].width = \
-                        original_ws.column_dimensions[col_letter].width
-            
-            # Copy header formatting
-            for col_idx in range(1, len(df_report.columns) + 1):
-                original_cell = original_ws.cell(row=1, column=col_idx)
-                new_cell = ws_results.cell(row=1, column=col_idx)
-                
-                if original_cell.font:
-                    new_cell.font = original_cell.font.copy()
-                if original_cell.fill:
-                    new_cell.fill = original_cell.fill.copy()
-                if original_cell.alignment:
-                    new_cell.alignment = original_cell.alignment.copy()
-            
-        except Exception as e:
-            log.warning(f"⚠️ Could not copy all formatting: {e}")
+        return True
         
-        # Format Summary sheet
-        ws_summary = writer.sheets['Summary']
-        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
-        header_font = Font(bold=True, color="FFFFFF")
-        
-        for col_idx in range(1, 3):
-            cell = ws_summary.cell(row=1, column=col_idx)
-            cell.fill = header_fill
-            cell.font = header_font
-            cell.alignment = Alignment(horizontal='center')
-    
-    log.info(f"✅ Updated report saved: {output_path}")
-    
-    # Print summary
-    log.info("\n" + "="*60)
-    log.info("📊 TEST REPORT UPDATE SUMMARY")
-    log.info("="*60)
-    log.info(f"Total test cases: {total}")
-    log.info(f"Updated: {updated_count} test cases")
-    log.info(f"Not found in results: {len(not_found_in_results)}")
-    if not_found_in_report:
-        log.warning(f"⚠️ TestCase IDs in results but not in report: {len(not_found_in_report)}")
-    log.info(f"\n📈 Test Results:")
-    log.info(f"   Pass: {pass_count} ({pass_count/total*100:.1f}%)")
-    log.info(f"   Fail: {fail_count} ({fail_count/total*100:.1f}%)")
-    log.info(f"   Skip: {skip_count} ({skip_count/total*100:.1f}%)")
-    log.info(f"   Blocked: {blocked_count} ({blocked_count/total*100:.1f}%)")
-    log.info(f"   Not Executed: {not_executed} ({not_executed/total*100:.1f}%)")
-    log.info(f"\n🎯 Pass Rate: {pass_rate:.2f}%")
-    log.info(f"🕐 Execution Date: {today}")
-    log.info(f"\n📁 Files:")
-    log.info(f"   - Updated: {output_path}")
-    log.info(f"   - Backup: {backup_path}")
-    
-    if not_found_in_results:
-        log.info(f"\n⚠️ TestCase IDs not found in results (unchanged):")
-        for tc_id in not_found_in_results[:10]:  # Show first 10
-            log.info(f"   - {tc_id}")
-        if len(not_found_in_results) > 10:
-            log.info(f"   ... and {len(not_found_in_results) - 10} more")
-    
-    if not_found_in_report:
-        log.info(f"\n⚠️ TestCase IDs in results but not in report:")
-        for tc_id in not_found_in_report[:10]:
-            log.info(f"   - {tc_id}")
-        if len(not_found_in_report) > 10:
-            log.info(f"   ... and {len(not_found_in_report) - 10} more")
-    
-    log.info("="*60)
-    
-    return str(output_path)
-
-def main():
-    parser = argparse.ArgumentParser(description='Update test report with new execution results')
-    parser.add_argument('--mode', choices=['parse', 'update'], required=True,
-                       help='Mode: parse (parse results) or update (update report)')
-    parser.add_argument('--results', help='Path to test results file (for parse mode)')
-    parser.add_argument('--format', choices=['json', 'csv', 'excel'],
-                       help='Format of results file (for parse mode)')
-    parser.add_argument('--report', help='Path to existing test report (for update mode)')
-    parser.add_argument('--parsed-results', help='Path to parsed results JSON (for update mode)')
-    parser.add_argument('--output-dir', default='output', help='Output directory')
-    
-    args = parser.parse_args()
-    
-    if args.mode == 'parse':
-        if not args.results or not args.format:
-            log.error("❌ Error: --results and --format are required for parse mode")
-            sys.exit(1)
-        
-        results_map = parse_test_results(args.results, args.format)
-        
-        # Save parsed results
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-        output_path = Path(args.output_dir) / 'parsed_results.json'
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(results_map, f, ensure_ascii=False, indent=2)
-        
-        log.info(f"✅ Parsed results saved to: {output_path}")
-        
-    elif args.mode == 'update':
-        if not args.report or not args.parsed_results:
-            log.error("❌ Error: --report and --parsed-results are required for update mode")
-            sys.exit(1)
-        
-        # Load parsed results
-        with open(args.parsed_results, 'r', encoding='utf-8') as f:
-            results_map = json.load(f)
-        
-        update_report(args.report, results_map, args.output_dir)
-
-if __name__ == '__main__':
-    main()
+    except Exception as e:
+        log.error(f"Error generating report: {e}", exc_info=True)
+        print(f"❌ Error: {e}")
+        return False

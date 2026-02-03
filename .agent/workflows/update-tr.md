@@ -2,11 +2,63 @@
 description: 🔄 Update test report với kết quả test mới
 ---
 
-# WORKFLOW: /update-tr - Incremental Test Report Update
+# WORKFLOW: /update-tr - Update Test Report (Zero-Click)
 
 ## 🎯 Mục đích
 
-Update test report Excel với kết quả test execution mới mà KHÔNG cần regenerate toàn bộ report.
+Update test report Excel với execution results từ test case markdown (status checkboxes).
+
+## ✅ Input
+
+- Test case markdown file với status checkboxes format: `[x] Pass / [ ] Fail / [ ] Skip / [ ] Blocked`
+- Existing Excel report (default: `output/TEST_REPORT.xlsx`)
+
+## 🚀 Execution (Automated)
+
+// turbo-all
+
+1. **Update report từ test case markdown**:
+
+   ```powershell
+   python -m test-gen.main --step update-report --input <testcase_file> [--report-file <report_path>]
+   ```
+
+   Script sẽ:
+   - Parse markdown file để extract status từ checkbox format
+   - Match TestCase IDs giữa markdown và Excel
+   - Update Status column (Pass/Fail/Skip/Blocked)
+   - Color-code cells (Green/Red/Yellow/Gray)
+   - Update Execution Date
+   - Create backup của report cũ
+   - Save updated report: `output/updated_TEST_REPORT_<timestamp>.xlsx`
+   - Print summary statistics
+
+## 📊 Output
+
+- ✅ Updated Excel report: `output/updated_TEST_REPORT_<timestamp>.xlsx`
+- ✅ Backup file: `output/backup_TEST_REPORT_<timestamp>.xlsx`
+- ✅ Summary statistics in console
+
+## 📝 Example Usage
+
+```powershell
+# Update với file mặc định output/TEST_REPORT.xlsx
+python -m test-gen.main --step update-report --input output/tc_auto.md
+
+# Update với custom report file
+python -m test-gen.main --step update-report --input output/tc_auto.md --report-file path/to/report.xlsx
+```
+
+## 🎯 Status Checkbox Format
+
+Markdown phải có column **status** với format:
+
+```
+[x] Pass / [ ] Fail / [ ] Skip / [ ] Blocked  → Pass
+[ ] Pass / [x] Fail / [ ] Skip / [ ] Blocked  → Fail
+[ ] Pass / [ ] Fail / [x] Skip / [ ] Blocked  → Skip
+[ ] Pass / [ ] Fail / [ ] Skip / [x] Blocked  → Blocked
+```
 
 ## 📋 Prerequisites
 

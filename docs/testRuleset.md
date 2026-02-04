@@ -1,6 +1,6 @@
 # 🛡️ The Antigravity Testing Standard (Test Ruleset)
 
-**Status**: ACTIVE | **Version**: 2.1 | **Enforcement**: STRICT
+**Status**: ACTIVE | **Version**: 2.2 | **Enforcement**: STRICT
 
 ## 1. Core Philosophy: "Defense in Depth"
 
@@ -166,7 +166,7 @@ When generating or updating testcase Excel files, include these mandatory column
 
 ---
 
-## 7. Riske Assessment Matrix
+## 7. Risk Assessment Matrix
 
 | Probability \ Impact   | Minor (Cosmetic) | Major (Function) | Critical (Data/Auth) |
 | :--------------------- | :--------------- | :--------------- | :------------------- |
@@ -176,11 +176,31 @@ When generating or updating testcase Excel files, include these mandatory column
 
 ---
 
-**Note**: This ruleset is dynamic. If a new usage pattern emerges, update this document immediately.
+## 8. The Requirement Explosion Protocol (Exploding TCs)
+
+**CRITICAL RULE**: Do not map 1 Requirement to 1 Test Case. You must "explode" requirements into exhaustive scenarios.
+
+For **EVERY INPUT FIELD** found in the PRD, you MUST generate at least **4 Test Cases**:
+
+1.  **Golden Path**: Valid input -> Success.
+2.  **Validation (Empty/Null)**: Leave field empty -> Error Required.
+3.  **Boundary/Constraints**: Max length, Invalid format, Special characters -> Error Specific.
+4.  **Security/Sanitization**: XSS payload, SQLi payload -> Sanitized or Rejected.
+
+For **EVERY FORM**, you MUST generate:
+
+1.  **Happy Path**: All valid -> Success.
+2.  **Validation Error**: One invalid field -> Error displayed.
+3.  **System Edge Case**: Network disconnect or Server 500 -> Graceful handling (no crash).
+
+For **EVERY FEATURE**, you MUST check for implied NFRs even if brief in PRD:
+
+1.  **Analytics**: If analytics mentioned, generate TCs for Event Firing.
+2.  **Rate Limiting**: If security mentioned, generate TCs for Brute-force/Spam.
 
 ---
 
-## 8. Mandatory Coverage Checklist (The "AI Self-Correction")
+## 9. Mandatory Coverage Checklist (The "AI Self-Correction")
 
 **CRITICAL**: Before finishing any test generation task, the Agent MUST scan the PRD for the following sections. If a section exists in the PRD, you MUST generate at least one corresponding test case.
 
@@ -198,4 +218,4 @@ When generating or updating testcase Excel files, include these mandatory column
 > 2. List all headers (e.g., "5. Analytics").
 > 3. Generate Core Functional Tests, UI/UX Tests, Performance Tests, Sercurity Testes by skill testing: BVA, EP, Decision Table, State Transition and Error Guessing
 > 4. **CHECK**: Did I cover Section 5 (Analytics)? -> No? -> **GENERATE NOW**.
-> 5. **CHECK**: Did I cover Rate Limiting? -> No? -> **GENERATE NOW**.
+> 5. **CHECK**: Did I cover Input Fields (Explosion)? -> No? -> **GENERATE NOW**.

@@ -182,7 +182,7 @@ class Exporter:
             'p3_percent': all_stats['p3_percent'],
             
             # Test Cases Lists
-            'functional_testcases': self._prepare_functional_data(functional),
+            'functional_testcases': self._prepare_functional_data(functional, metadata),
             'non_functional_testcases': self._prepare_nonfunctional_data(non_functional),
             
             # NFT Categories
@@ -219,7 +219,7 @@ class Exporter:
             import traceback
             return f"Error rendering template: {e}\n{traceback.format_exc()}"
     
-    def _prepare_functional_data(self, test_cases: list) -> list:
+    def _prepare_functional_data(self, test_cases: list, metadata: dict = {}) -> list:
         """
         Prepare functional test cases for template
         Ensures all 11 required fields are present
@@ -233,12 +233,16 @@ class Exporter:
             prepared_tc = tc.copy()
             
             # Ensure all required fields with defaults
-            prepared_tc.setdefault('module', 'General')
-            prepared_tc.setdefault('pre_condition', '-')
+            prepared_tc.setdefault('module', metadata.get('feature_name', 'General'))
+            prepared_tc.setdefault('pre_condition', 'User is logged in' if 'login' in str(tc.get('description', '')).lower() else '-')
             prepared_tc.setdefault('test_data', '-')
             prepared_tc.setdefault('status', '[ ] Pass / [ ] Fail / [ ] Skip / [ ] Blocked')
-            prepared_tc.setdefault('created_date', '')
+            prepared_tc.setdefault('created_date', datetime.now().strftime('%Y-%m-%d'))
             prepared_tc.setdefault('execute_date', '')
+            
+            # Map description to title if title is missing
+            if 'title' not in prepared_tc and 'description' in prepared_tc:
+                prepared_tc['title'] = prepared_tc['description']
             
             # Calculate step count for collapsible display
             if isinstance(prepared_tc.get('steps'), list):
@@ -248,6 +252,8 @@ class Exporter:
                 # Count steps by bullet separator
                 steps_str = str(prepared_tc.get('steps', ''))
                 prepared_tc['step_count'] = steps_str.count('•') + 1 if '•' in steps_str else 1
+                # Format string steps (replace \n with <br> for display)
+                # markdown_generator handles this but let's be safe
             
             # Create shortened version for simplified table
             steps_full = prepared_tc.get('steps', '-')
@@ -307,6 +313,10 @@ class Exporter:
             tc_type = prepared_tc.get('type', '')
             if 'category' not in prepared_tc or not prepared_tc['category']:
                 prepared_tc['category'] = type_to_category.get(tc_type, 'Other')
+
+            # Map description to title if title is missing
+            if 'title' not in prepared_tc and 'description' in prepared_tc:
+                prepared_tc['title'] = prepared_tc['description']
             
             # Ensure all required fields
             prepared_tc.setdefault('tools', '-')

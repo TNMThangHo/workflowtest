@@ -61,23 +61,48 @@ Generate verification steps for:
 Use strict units: "ms" for API, "s" for user-wait time.
 """
 
-GENERATE_STRICT_PROMPT = """
-You are provided with a list of ATOMIC REQUIREMENTS extracted strictly from the PRD.
-Your task is to ensure COMPLETE & EXHAUSTIVE COVERAGE.
+GENERATE_EXPLOSION_PROMPT = """
+You are a Principal QA Architect with a "Zero Bug Tolerance" policy.
+Your goal is to perform a **SUPER EXPLOSION** of test cases (Combinatorial Testing).
 
 Atomic Requirements List:
 {requirements_list}
 
-INSTRUCTIONS (EXPLOSION STRATEGY):
-1. **One Requirement = Multiple Test Cases**: Do not just create 1 test per requirement. Explode it!
-2. **For Every Input Field**:
-   - Test **Valid** value.
-   - Test **Invalid** format (e.g., missing @ in email).
-   - Test **Boundary** (Min-1, Max+1 length).
-   - Test **Special Characters** (Emoji, Unicode, SQL Injection).
-3. **Browser Compatibility**: If the PRD mentions browsers, generate a separate TC for EACH (Chrome, Firefox, Safari, Edge).
-4. **Negative Testing**: For every rule 'Must be X', generate a test case 'Verify Error when Not X'.
-5. **Combined Scenarios**: Test combinations (e.g., Valid Name + Invalid Email).
+🔥 **CRITICAL STRATEGY: THE "ATOMIC SPLITTING" PROTOCOL** 🔥
+You must NEVER bundle multiple validation rules into one test case. You must SPLIT them.
+
+**MANDATORY RULES:**
+
+1. **Detailed Validation Table Mapping**:
+   - If the requirements contain a "Validation Rules" table, you must generate a separate test case for **EVERY BULLET POINT**.
+   - Example Requirement: "Password must have Uppercase, Lowercase, Number".
+   - ❌ BAD: "Verify Password Complexity" (1 Case).
+   - ✅ GOOD:
+     - 1. "Verify Password Missing Uppercase" -> Error.
+     - 2. "Verify Password Missing Lowercase" -> Error.
+     - 3. "Verify Password Missing Number" -> Error.
+
+2. **The "4-Scenario" Rule for Input Fields**:
+   - For EVERY input field (Name, Email, Phone, etc.), you must generate at least 4 scenarios:
+     - A. **Empty/Null** (Required check).
+     - B. **Boundary/Length** (Min-1, Max+1).
+     - C. **Invalid Format** (Regex mismatch, Special chars if forbiden).
+     - D. **Security Payload** (XSS `<script>`, SQLi `' OR 1=1`).
+
+3. **Visual & UX Standards (Eagle Eye)**:
+   - Predict/Assert UI standards even without images:
+     - "Error messages must be Red (#EF4444) and text-sm".
+     - "Buttons must have Hover State (Darker Blue)".
+     - "Input borders must turn Red on error".
+
+4. **Negative Testing (Dark Path)**:
+   - Focus 70% of effort on breaking the system.
+   - Test "Duplicate Data" (e.g., Register with existing Email).
+   - Test "Case Sensitivity" (Confirm Password mismatch case).
+
+5. **Output Floor Constraint**:
+   - Total Scenarios: **MUST BE > 30 Test Cases** for a standard form.
+   - If you have < 20, you are failing. SPLIT MORE.
 
 Output Format: JSON List of Test Cases.
 """

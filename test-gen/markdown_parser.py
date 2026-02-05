@@ -96,11 +96,24 @@ class PRDParser:
         log.info(f"Extracted metadata: feature='{metadata['feature_name']}', version='{metadata['prd_version']}', tester='{metadata['tester']}'")
         return metadata
 
+    def extract_figma_links(self) -> List[str]:
+        """Extract all Figma URLs"""
+        # Matches figma.com/file/... or figma.com/design/...
+        figma_pattern = r'https://(?:www\.)?figma\.com/(?:file|design|proto)/([a-zA-Z0-9]+)/?'
+        links = re.findall(figma_pattern, self.content)
+        full_links = [f"https://figma.com/design/{l}" for l in links]  # Normalize
+        if full_links:
+            log.info(f"🎨 Found {len(full_links)} Figma linked designs.")
+        return full_links
+
     def get_full_content(self) -> str:
         return self.content
 
     def run(self):
         if self.load():
             self.parse_metadata()
+            links = self.extract_figma_links()
+            if links:
+                self.metadata["figma_links"] = links
             return True
         return False

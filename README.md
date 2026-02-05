@@ -1,19 +1,23 @@
-# 🤖 AI Test Case Generator (Test Gen v3)
+# 🤖 AI Test Case Generator (Test Gen v4.0)
 
-Automate your QA workflow with AI using this "Smart Test Generator". It analyzes your Product Requirements (PRD), Swagger Specs, and Test Matrix to generate high-coverage test cases automatically.
+Automate your QA workflow with AI using this "Smart Test Generator". It analyzes your Product Requirements (PRD) and UI Design (Images) to generate high-coverage test cases automatically.
 
-## ✨ Features
+> **v4.0 Update**: Now features **"Super Explosion Strategy"** (>30 TCs/feature) and **Native Visual QA** (Eagle Eye).
 
-- **Smart Analysis**: Reads PRD text, Swagger JSON, and Test Matrix.
-- **Strict Mode**: Enforces security checks (XSS, SQLi), validation boundaries, and UX rules.
-- **Workflow Automation**: 2-Step process (Prepare -> Generate -> Format).
-- **Auto Reporting**: Generates Markdown test cases and Excel reports.
+## ✨ Key Features
+
+- **💥 Super Explosion Strategy**: Automatically splits validation rules into atomic test cases (Valid, Invalid, Boundary, Security). Guarantees >30 cases per standard form.
+- **👁️ Eagle Eye Vision (Visual QA)**: Uses Native Agent Vision to critique UI/UX (Layout, Colors, Typography) without external API keys.
+- **🛡️ Hypothesis Integration**: Smart data fuzzing (XSS payloads, Boundary values) injected directly into test steps.
+- **🔒 Strict Mode**: Enforces security checks (XSS, SQLi, IDOR) and performance SLAs.
+- **⚡ Zero-Click Workflow**: Two-step process (Init -> Finish) handles everything from parsing to formatting.
 
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
 
 - Python 3.8+
+- Git
 
 ### 2. Installation
 
@@ -22,77 +26,58 @@ Automate your QA workflow with AI using this "Smart Test Generator". It analyzes
 git clone <YOUR_REPO_URL>
 cd <REPO_FOLDER>
 
-# Install dependencies
+# Install dependencies (Minimal)
 pip install -r requirements.txt
 ```
 
-### 3. Usage
+### 3. Usage (The AWF Workflow)
 
-**Step 1: Prepare Inputs**
+**Step 1: Input**
 
-- Place your PRD (Markdown) in `input/`.
-- (Optional) Place `swagger.json` and `matrix_factors.json` in `input/`.
+- Drop your PRD (Markdown) into `input/`.
+- (Optional) Drop Figma screenshot `input/screen.png` for Visual QA.
 
 **Step 2: Run Automation**
 
-This project uses the AWF workflow system. If you don't have the AWF CLI, you can run the python scripts directly:
-
 ```bash
-# Phase 1: Prepare Context (Reads inputs)
-python test-gen/main.py --step prepare
+# 1. Initialize & Analyze (Atomic Splitting)
+python -m test-gen.main --step init --prd input/signupPrd.md
 
-# Phase 2: Generate Test Cases (Use your LLM Agent here to read `output/run_context.json`)
-# ... (Or manually create output/raw_testcases.json)
-
-# Phase 3: Format Output (Markdown & Excel)
-python test-gen/main.py --step format
+# 2. Generate & Format (Super Explosion + Enrichment)
+python -m test-gen.main --step finish --prd input/signupPrd.md --filename tc_auto
 ```
 
-**Available Workflows:**
+**Output**:
 
-- **/testcase** - Generate comprehensive test cases from PRD
-- **/test-plan** - Generate Test Plan from PRD (Scope, Strategy, Resources)
-- **/test-report** - Generate test execution report
-- **/release-note** - Generate Release Note from PRD (User-friendly, Feature highlights)
-- **/update-tc** - Update existing testcase Excel with new requirements (appends new test cases)
-- **/update-tr** - Update test report with new execution results (updates status, results, evidence)
+- `output/tc_auto.md`: The detailed Test Case Document (Markdown).
+- `output/raw_testcases.json`: Traceable JSON source.
 
-**Update Workflows:**
+## 🧠 Core Strategies
 
-The update workflows allow you to incrementally update existing test artifacts without regenerating from scratch:
+### 1. Atomic Constraint Splitting
 
-```bash
-# Update testcase Excel with new requirements
-python test-gen/update_testcase.py --mode=prepare --excel <path> --prd <new_prd_path>
-# ... (Agent generates new test cases)
-python test-gen/update_testcase.py --mode=merge --excel <path> --new-cases <generated_json>
+Instead of _"Verify Password"_, the tool generates:
 
-# Update test report with new execution results
-python test-gen/update_report.py --mode=parse --results <results_path> --format json
-python test-gen/update_report.py --mode=update --report <report_path> --parsed-results output/parsed_results.json
-```
+- Verify Password Empty
+- Verify Password < 8 Chars
+- Verify Password Missing Uppercase
+- Verify Password Missing Special Char
 
-## 🔄 How to Reuse (Template Strategy)
+### 2. The "4-Scenario" Protocol
 
-**Important**: This tool runs **locally** within the project folder. It is NOT installed globally like typical CLI tools (npm/pip global).
+For every input field, we generate at least 4 variants:
 
-To use this tool for a **new project**, treat this repository as a **Template**:
-
-1. **Clone** this repository again (or fork it).
-2. **Rename** the folder to your new project name.
-3. **Clean up**:
-   - Delete files in `input/` (keep `swagger.json` if needed).
-   - Delete files in `output/`.
-4. **Run**: Normal setup (`pip install -r requirements.txt`).
-
-✅ This ensures every project has its own isolated PRDs, Test Cases, and Reports.
+1. **Happy Path** (Valid)
+2. **Boundary** (Min/Max)
+3. **Invalid Format** (Regex)
+4. **Security** (XSS/SQLi)
 
 ## 📂 Project Structure
 
-- `input/`: Drop your input files here.
-- `output/`: Generated results (Test Cases, Reports).
-- `docs/`: Reference documentation (`references.md`, `testRuleset.md`).
-- `test-gen/`: Core Python scripts.
+- `input/`: Drop PRDs and Images here.
+- `output/`: Generated Artifacts.
+- `test-gen/`: Core Logic (Prompts, Fuzzer, Parser).
+- `docs/`: Rulesets and Best Practices.
 
 ## 🤝 Contributing
 

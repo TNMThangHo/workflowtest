@@ -26,6 +26,10 @@ graph TD
 
         note1>Target: Smart DataGen] --> Hypo
         Hypo -->|Fuzzing & Enrichment| EnrichedJson[Enriched Test Cases]
+
+        %% New Visual Capability
+        Context -->|Screenshot| VisualAI["Eagle Eye (Visual AI)"]
+        VisualAI -->|UX Critique| EnrichedJson
     end
 
     %% Phase 3: Rendering
@@ -44,6 +48,7 @@ graph TD
         Validator -->|Check 1| Schema[Schema Match]
         Validator -->|Check 2| Browser[Browser Coverage]
         Validator -->|Check 3| Security[Security Checks]
+        Validator -->|Check 4| Visual[Visual Standards]
 
         Validator -- "❌ Fail" --> Main
         Validator -- "✅ Pass" --> Final[Final Output]
@@ -68,6 +73,9 @@ graph TD
 - **Hypothesis Engine (✨ New):**
   - **Smart Data:** Replaces generic checks ("invalid email") with real edge-case data (`user@.com`, `👻`).
   - **Fuzzing strategy:** Injects random noise to ensure test robustness.
+- **Visual Intelligence (👁️ Next):**
+  - **Eagle Eye:** Uses Multimodal AI to review screenshots against UX principles.
+  - **Critique:** Auto-checks contrast, alignment, and spacing consistency.
 
 ### 3. Rendering Layer (The "Artist")
 
@@ -76,24 +84,22 @@ graph TD
 
 ### 4. Quality Gate (The "Judge")
 
-- **Automated Checks:**
-  - Is the table format broken?
-  - Are strict SLAs from PRD met?
-  - Is Security testing included?
-- **Self-Correction:** If validation fails, the workflow loops back to regenerate or fix formatting automatically.
+- **Automated Checks:** Coverage, Security, Performance, and now **Visual Standards**.
+- **Self-Correction:** Loops back if critical failures occur.
 
 ---
 
 ## 🛠 Component Map
 
-| Component            | Responsibility      | Tech Stack          |
-| :------------------- | :------------------ | :------------------ |
-| `main.py`            | Orchestrator        | Python CLI          |
-| `markdown_parser.py` | Input Reader        | Regular Expressions |
-| `prompts.py`         | AI Instructions     | Prompt Engineering  |
-| `data_fuzzer.py`     | Data Enrichment     | **Hypothesis**      |
-| `template_engine.py` | Document Generation | Jinja2              |
-| `validator.py`       | Quality Assurance   | PyTest / Schema     |
+| Component             | Responsibility      | Tech Stack              |
+| :-------------------- | :------------------ | :---------------------- |
+| `main.py`             | Orchestrator        | Python CLI              |
+| `markdown_parser.py`  | Input Reader        | Regular Expressions     |
+| `prompts.py`          | AI Instructions     | Prompt Engineering      |
+| `data_fuzzer.py`      | Data Enrichment     | **Hypothesis**          |
+| `template_engine.py`  | Document Generation | Jinja2                  |
+| `visual_validator.py` | Visual QA           | **Native Agent Vision** |
+| `validator.py`        | Quality Assurance   | PyTest / Schema         |
 
 ---
 
@@ -101,4 +107,5 @@ graph TD
 
 - [ ] **Direct Jira Integration:** Push Validated TCs to Jira Board.
 - [ ] **Excel High-Fidelity:** Generate `.xlsx` with colors and macros.
-- [ ] **Test Execution:** Generate `pytest` scripts directly from TCs.
+- [ ] **Visual Diffing:** Pixel-perfect design vs implementation check.
+- [ ] **Test Execution:** Generate `pytest`/`playwright` scripts directly.

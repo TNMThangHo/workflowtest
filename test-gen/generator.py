@@ -1,7 +1,7 @@
 import json
 import os
 from .logger import log
-from .prompts import SYSTEM_PROMPT, GENERATE_FUNCTIONAL_PROMPT
+from .prompts import SYSTEM_PROMPT, GENERATE_EXPLOSION_PROMPT
 from .schema import TestSuite, TestCase
 
 class TestGenerator:
@@ -40,7 +40,7 @@ class TestGenerator:
 
     def save_prompt_context(self, output_path="output/agent_prompt.txt"):
         """Generate the comprehensive prompt for the Agent to use"""
-        prompt_content = SYSTEM_PROMPT + "\n\n" + "TASK: Generate based on detected context."
+        prompt_content = SYSTEM_PROMPT + "\n\n" + str(GENERATE_EXPLOSION_PROMPT) + "\n\n" + "TASK: Generate based on detected context."
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(prompt_content)
         log.info(f"📝 Generated Prompt Context at: {output_path}")

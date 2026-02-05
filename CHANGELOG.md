@@ -1,5 +1,25 @@
 # Changelog
 
+## [2026-02-05] - Super Explosion Strategy & Vision QA
+
+### Added
+
+- **Super Explosion Strategy (v4.0)**: Updated `prompts.py` to enforce Atomic Constraint Splitting, ensuring >30 test cases per feature.
+- **Dashboard Verified**: Generated `tc0001.md` (25 TCs) covering Widget Logic and Visual QA.
+- **Visual QA (Eagle Eye)**: Integrated Native Agent Vision for UI/UX testing without API keys.
+- **Hypothesis Integration**: Added fuzz testing capabilities for robustness.
+
+### Changed
+
+- **Prompt Logic**: Switched from generic "Explosion" to specific "Atomic Splitting" protocol.
+- **Environment**: Removed `.env` dependency, moved to fully local execution.
+
+### Fixed
+
+- **Low Test Coverage**: Resolved the issue where only basic happy paths were generated. Now detailed edge cases are mandatory.
+
+---
+
 ## [2026-02-03] - Test Plan & Report Improvements
 
 ### Added

@@ -101,13 +101,21 @@ def categorize_testcases(test_cases: List[Dict[str, Any]]) -> tuple:
     ]
     
     for tc in test_cases:
-        tc_type = tc.get('type', 'FUNC')
+        # Prioritize 'category' key, fallback to 'type', default to 'FUNC'
+        tc_cat = tc.get('category')
+        tc_type = tc.get('type')
+        
+        # Use category if present, otherwise type. Default to FUNC only if both missing.
+        # However, be careful: if category is 'Visual', effective_type becomes 'Visual' -> Non-Functional. Correct.
+        # If category is 'Functional', effective_type becomes 'Functional' -> Functional. Correct.
+        
+        effective_type = tc_cat if tc_cat else (tc_type if tc_type else 'FUNC')
         
         # Check if it's a functional type
-        if tc_type in functional_types:
+        if effective_type in functional_types:
             functional.append(tc)
         else:
-            # Non-Functional: SEC, PERF, Security, Performance, etc.
+            # Non-Functional: SEC, PERF, Visual, Security, Performance, etc.
             non_functional.append(tc)
     
     return functional, non_functional

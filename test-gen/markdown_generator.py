@@ -113,7 +113,7 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
     lines.append("### 1. Phạm vi kiểm thử")
     lines.append("")
     categories = data.get('nft_categories', [])
-    all_cats = ["Performance", "Security", "Availability", "Reliability", "Usability", "Accessibility", "Compatibility", "Analytics"]
+    all_cats = ["Functional", "Performance", "Security", "Visual", "Availability", "Reliability", "Usability", "Accessibility", "Compatibility", "Analytics"]
     for cat in all_cats:
         mark = "x" if cat in categories else " "
         lines.append(f"- [{mark}] **{cat}**")

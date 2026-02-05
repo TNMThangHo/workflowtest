@@ -37,7 +37,8 @@ def enrich_test_cases(input_path="output/raw_testcases.json"):
     
     # Process Functional Test Cases
     enriched_count = 0
-    all_tcs = data.get('functional_testcases', []) + data.get('non_functional_testcases', [])
+    # Support both old and new schema
+    all_tcs = data.get('test_cases', []) + data.get('functional_testcases', []) + data.get('non_functional_testcases', [])
     
     print(f"🔍 Scanning {len(all_tcs)} test cases for data enrichment potential...")
     

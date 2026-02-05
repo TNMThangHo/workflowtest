@@ -203,6 +203,6 @@ This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- Built with [Google Gemini](https://ai.google.dev/) API
+- Built with [Antigravity AWF](https://deepmind.google/technologies/gemini/) (Advanced Agentic Workflow Framework)
 - Test data generation powered by [Hypothesis](https://hypothesis.readthedocs.io/)
 - Inspired by Pairwise Testing and BVA methodologies

@@ -64,6 +64,9 @@ def enrich_test_cases(input_path="output/raw_testcases.json"):
                     pass
             
             if examples:
+                # Sanitize examples for markdown table compatibility
+                sanitized_examples = [sanitize_for_markdown(ex) for ex in examples]
+                
                 # Append to Test Data
                 current_data = tc.get('test_data', '')
                 if current_data == '-' or current_data == '':
@@ -71,7 +74,7 @@ def enrich_test_cases(input_path="output/raw_testcases.json"):
                 
                 # Check for existing enrichment to avoid duplication/spam
                 if "[Hypothesis Examples:" not in current_data:
-                    enrichment = f" <br> **[Hypothesis Examples]:** `{', '.join(examples)}`"
+                    enrichment = f" <br> **[Hypothesis Examples]:** `{', '.join(sanitized_examples)}`"
                     tc['test_data'] = current_data + enrichment
                     enriched_count += 1
 
@@ -83,5 +86,23 @@ def enrich_test_cases(input_path="output/raw_testcases.json"):
     print(f"✅ Enriched {enriched_count} test cases with Hypothesis data.")
     return True
 
+def sanitize_for_markdown(text):
+    """Remove characters that break markdown tables."""
+    if not text:
+        return text
+    
+    # Remove control characters (including newlines, tabs, vertical tabs)
+    sanitized = ''.join(char for char in text if ord(char) >= 32 or char in [' '])
+    
+    # Remove pipe characters that break tables
+    sanitized = sanitized.replace('|', '/')
+    
+    # Limit length to prevent overflow
+    if len(sanitized) > 30:
+        sanitized = sanitized[:27] + "..."
+    
+    return sanitized
+
 if __name__ == "__main__":
     enrich_test_cases()
+

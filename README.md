@@ -54,7 +54,6 @@ Automate your QA workflow with AI using this "Smart Test Generator". It analyzes
 
 - Python 3.8+
 - Git
-- Gemini API Key (set in `.env`)
 
 ### 2. Installation
 
@@ -65,10 +64,6 @@ cd workflowtest
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Setup environment
-cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
 ```
 
 ### 3. Usage (The AWF Workflow)

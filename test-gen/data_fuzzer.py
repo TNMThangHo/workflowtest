@@ -68,9 +68,12 @@ def enrich_test_cases(input_path="output/raw_testcases.json"):
                 if current_data == '-' or current_data == '':
                     current_data = "Auto-Generated:"
                 
-                enrichment = f" [Hypothesis Examples: {', '.join(examples)}]"
-                tc['test_data'] = current_data + enrichment
-                enriched_count += 1
+                # Check for existing enrichment to avoid duplication/spam
+                if "[Hypothesis Examples:" not in current_data:
+                    enrichment = f" <br> **[Hypothesis Examples]:** `{', '.join(examples)}`"
+                    tc['test_data'] = current_data + enrichment
+                    enriched_count += 1
+
 
     # Save back
     with open(input_path, 'w', encoding='utf-8') as f:

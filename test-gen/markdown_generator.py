@@ -84,7 +84,7 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
         status_raw = tc.get('status', '')
         status_display = status_raw
         if status_raw in ['New', '[ ]', '']:
-             status_display = '[ ] Pass <br> [ ] Fail'
+             status_display = '[ ] Pass / [ ] Fail / [ ] Skip / [ ] Blocked'
 
         row = [
             tc.get('id', ''),
@@ -137,7 +137,7 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
         status_raw = tc.get('status', '')
         status_display = status_raw
         if status_raw in ['New', '[ ]', '']:
-             status_display = '[ ] Pass <br> [ ] Fail'
+             status_display = '[ ] Pass / [ ] Fail / [ ] Skip / [ ] Blocked'
              
         row = [
             tc.get('id', ''),

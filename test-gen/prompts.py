@@ -63,16 +63,22 @@ Use strict units: "ms" for API, "s" for user-wait time.
 
 GENERATE_STRICT_PROMPT = """
 You are provided with a list of ATOMIC REQUIREMENTS extracted strictly from the PRD.
-Your task is to ensure COMPLETE COVERAGE.
+Your task is to ensure COMPLETE & EXHAUSTIVE COVERAGE.
 
 Atomic Requirements List:
 {requirements_list}
 
-INSTRUCTIONS:
-1. **One Requirement = One or More Test Cases**.
-2. **Browser Compatibility**: If the PRD mentions browsers (Chrome, Firefox, Safari, Edge), generate a separate Compatibility Test Case for EACH browser.
-3. **Quantitative Checks**: If a requirement has a number (e.g., "< 1s", "5 attempts"), the expected result MUST verify this number.
-4. **Negative Testing**: For every constraints requirement, generate at least one Negative Test Case (Violating the constraint).
+INSTRUCTIONS (EXPLOSION STRATEGY):
+1. **One Requirement = Multiple Test Cases**: Do not just create 1 test per requirement. Explode it!
+2. **For Every Input Field**:
+   - Test **Valid** value.
+   - Test **Invalid** format (e.g., missing @ in email).
+   - Test **Boundary** (Min-1, Max+1 length).
+   - Test **Special Characters** (Emoji, Unicode, SQL Injection).
+3. **Browser Compatibility**: If the PRD mentions browsers, generate a separate TC for EACH (Chrome, Firefox, Safari, Edge).
+4. **Negative Testing**: For every rule 'Must be X', generate a test case 'Verify Error when Not X'.
+5. **Combined Scenarios**: Test combinations (e.g., Valid Name + Invalid Email).
 
 Output Format: JSON List of Test Cases.
 """
+

@@ -53,6 +53,9 @@ def main():
     
     # 1. Export Test Cases (Template-based Markdown)
     test_cases = data.get("test_cases", [])
+    if not test_cases:
+        test_cases = data.get("functional_testcases", []) + data.get("non_functional_testcases", [])
+
     if test_cases:
         log.info(f"Test Cases Export: Found {len(test_cases)} test cases.")
         fname = "test_cases.md"

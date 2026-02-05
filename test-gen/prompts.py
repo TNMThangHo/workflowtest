@@ -107,3 +107,59 @@ You must NEVER bundle multiple validation rules into one test case. You must SPL
 Output Format: JSON List of Test Cases.
 """
 
+
+# v5.0 Smart Schema Prompt
+GENERATE_SCHEMA_PROMPT = """
+You are a Senior Testing Architect. Your goal is NOT to write test cases, but to extract a precise Data Schema from the requirements.
+
+INPUT PRD:
+{prd_text}
+
+TASK:
+Extract the data schema and rules into a strict JSON format.
+
+JSON STRUCTURE (Must match exactly):
+{{
+  "feature_name": "string",
+  "sections": [
+    {{
+      "name": "string (e.g. User Info)",
+      "fields": [
+        {{
+          "name": "string (e.g. age)",
+          "type": "text" | "email" | "password" | "number" | "select" | "checkbox",
+          "required": boolean,
+          "min_length": int (optional),
+          "max_length": int (optional),
+          "min_value": float (optional),
+          "max_value": float (optional),
+          "regex": "string (optional)",
+          "options": ["opt1", "opt2"] (for select/radio)
+        }}
+      ]
+    }}
+  ],
+  "business_rules": [
+    {{
+      "id": "BR-001",
+      "description": "string",
+      "condition": "string",
+      "expected_result": "string",
+      "priority": "P0" | "P1" | "P2"
+    }}
+  ],
+  "visual_rules": [
+    {{
+      "element_name": "string",
+      "description": "string"
+    }}
+  ]
+}}
+
+CRITICAL RULES:
+1. Output ONLY valid JSON. No markdown blocks.
+2. For "type", infer the best fit. If it's a dropdown, use "select" and list "options".
+3. Extract ALL constraints (min, max, length) accurately.
+4. Business Rules are logical flows (If X then Y).
+5. Visual Rules are UI styles (Color, Layout).
+"""

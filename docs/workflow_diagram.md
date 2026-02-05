@@ -1,111 +1,123 @@
-# 🔄 Test Generation Workflow (Architecture v2.1)
+# 🔄 Test Generation Workflow (Architecture Evolution)
 
-**Status:** Stable | **Integration:** Hypothesis (PBT) + Template Engine
+## 📊 1. Current Stable Architecture (v4.0 - Super Explosion)
 
-## 📊 Core Architecture (The "Flow")
+The current system uses "Super Explosion" prompting with Hypothesis data enrichment and Visual QA.
 
 ```mermaid
 graph TD
-    %% User Input
-    User((User)) -->|"/testcase"| Main[Workflow Engine]
-    PRD[PRD / Specs] --> Main
+    User((User)) -->|Input| Main[Workflow Engine]
+    PRD[PRD] --> Main
+    Screen[Screenshot] --> Main
 
-    %% Phase 1: Preparation
-    subgraph "1. INPUT ANALYSIS"
+    subgraph "Phase 1: Analysis"
         Main --> Parser[Markdown Parser]
-        Parser -->|Extract Metadata| Context{Run Context}
-        Parser -->|Extract Requirements| Req[Atomic Requirements]
+        Parser --> Req[Atomic Requirements]
     end
 
-    %% Phase 2: Intelligence
-    subgraph "2. INTELLIGENCE LAYER"
-        Context --> AI[AI Agent]
-        Req --> AI
+    subgraph "Phase 2: Intelligence (v4.0)"
+        Req --> AI[AI Agent]
+        AI -->|Exploded Scenarios| RawJSON[Raw Test Cases]
 
-        AI -->|Raw Scenarios| Hypo[Hypothesis Engine]
+        %% Visual QA
+        Screen --> Visual["Eagle Eye (Visual AI)"]
+        Visual -->|UX Critique| RawJSON
 
-        note1>Target: Smart DataGen] --> Hypo
-        Hypo -->|Fuzzing & Enrichment| EnrichedJson[Enriched Test Cases]
-
-        %% New Visual Capability
-        Context -->|Screenshot| VisualAI["Eagle Eye (Visual AI)"]
-        VisualAI -->|UX Critique| EnrichedJson
+        %% Hypothesis Fuzzing
+        RawJSON --> Hypo[Hypothesis Fuzzer]
+        Hypo -->|Enriched Data| EnrichedJSON
     end
 
-    %% Phase 3: Rendering
-    subgraph "3. RENDERING LAYER"
-        EnrichedJson --> Exporter[Data Preparer]
-        Exporter -->|28 Variables| TmplEng[Template Engine]
-
-        Tmpl[Jinja2 Templates] --> TmplEng
-        TmplEng -->|Render| Markdown[test_cases.md]
+    subgraph "Phase 3: Output"
+        EnrichedJSON --> Template[Template Engine]
+        Template --> Markdown[tc_auto.md]
     end
 
-    %% Phase 4: Quality Assurance
-    subgraph "4. QUALITY GATE"
-        Markdown --> Validator[Validator]
-
-        Validator -->|Check 1| Schema[Schema Match]
-        Validator -->|Check 2| Browser[Browser Coverage]
-        Validator -->|Check 3| Security[Security Checks]
-        Validator -->|Check 4| Visual[Visual Standards]
-
-        Validator -- "❌ Fail" --> Main
-        Validator -- "✅ Pass" --> Final[Final Output]
+    subgraph "Phase 4: Quality Gate"
+        Markdown --> Val[Validator]
+        Val -->|Check| SLA[Performance SLA]
+        Val -->|Check| Sec[Security Rules]
     end
-
-    %% Self-Healing Loop
-    Hypo -.->|Pre-Flight Fuzz Test| TmplEng
 ```
 
 ---
 
-## 🚀 Workflow Stages Explained
+## 🚀 2. Future Architecture (v5.0 - Smart Matrix) [PROPOSED]
 
-### 1. Input Analysis (The "Eyes")
+**The Upgrade:** Shifts from "Generative Writing" to **"Algorithmic Expansion"**.
 
-- **Metadata Extraction:** Automatically pulls Feature Name, Version, and Author from PRD headers.
-- **Requirement Explosion:** Breaks down PRD paragraphs into atomic, testable check-items (1000 CCU, <1s latency, Must-haves).
+- **AI's Role:** Downgraded to "Architect" (Schema Extractor).
+- **Python's Role:** Upgraded to "Factory" (Matrix Expansion).
+- **Result:** 10x Coverage, 1/10th Token Cost.
 
-### 2. Intelligence Layer (The "Brain")
+```mermaid
+graph TD
+    %% Inputs
+    User((User)) -->|PRD + Screen| Engine[Orchestrator]
 
-- **AI Agent:** Generates logical scenarios using hardened prompts (BVA, Equivalence Partitioning).
-- **Hypothesis Engine (✨ New):**
-  - **Smart Data:** Replaces generic checks ("invalid email") with real edge-case data (`user@.com`, `👻`).
-  - **Fuzzing strategy:** Injects random noise to ensure test robustness.
-- **Visual Intelligence (👁️ Next):**
-  - **Eagle Eye:** Uses Multimodal AI to review screenshots against UX principles.
-  - **Critique:** Auto-checks contrast, alignment, and spacing consistency.
+    %% LAYER 1: The Brain (AI)
+    subgraph "L1: KNOWLEDGE EXTRACTION (AI)"
+        Engine -->|Prompt: Extract Schema| AI_Arch{AI Architect}
 
-### 3. Rendering Layer (The "Artist")
+        AI_Arch -->|JSON Schema| Schema("DATA SCHEMA\n{field: 'age', type: 'int', min:18}")
 
-- **Data Preparation:** Calculates coverage statistics (% P0/P1) and separates Functional vs. Non-Functional tests.
-- **Template Engine:** Uses `Jinja2` to render professional, 4-section documentation with strict 11-column layouts.
+        style Schema fill:#ff9,stroke:#333
+    end
 
-### 4. Quality Gate (The "Judge")
+    %% LAYER 2: The Factory (Python)
+    subgraph "L2: MATRIX EXPANSION (Python)"
+        Schema --> Matrix[Matrix Engine]
 
-- **Automated Checks:** Coverage, Security, Performance, and now **Visual Standards**.
-- **Self-Correction:** Loops back if critical failures occur.
+        %% Expansion Logic
+        Matrix -->|Rule: Integer| BVA[Boundary Value Analysis]
+        Matrix -->|Rule: String| Sec[Security Payloads]
+        Matrix -->|Rule: Enum|  Comb[Combinatorial]
+
+        BVA & Sec & Comb --> GenCases[Generated Atomic Cases]
+    end
+
+    %% LAYER 3: Visual Intelligence (Preserved from v4.0)
+    subgraph "L3: VISUAL INTELLIGENCE"
+        Engine -->|Image| EagleEye[Eagle Eye]
+        EagleEye -->|UX Rules| VisualCases[Visual Test Cases]
+
+        VisualCases --> Merger
+        GenCases --> Merger
+    end
+
+    %% LAYER 4: Realization
+    subgraph "L4: ASSEMBLY & VALIDATION"
+        Merger{Merger} --> Builder[Markdown Builder]
+        Builder --> FinalDoc[Final Doc]
+
+        FinalDoc --> Validator{Quality Gate}
+        Validator -->|Pass| Success((Done))
+        Validator -->|Fail| Loop[Self-Correction]
+    end
+
+    %% Styles
+    style AI_Arch fill:#f9f,stroke:#333
+    style Matrix fill:#bbf,stroke:#333
+```
+
+### Key Differences (v4.0 vs v5.0)
+
+| Feature          | v4.0 (Current)                      | v5.0 (Smart Schema)                     | Benefits              |
+| :--------------- | :---------------------------------- | :-------------------------------------- | :-------------------- |
+| **Logic Source** | AI writes text ("Verify age is 18") | AI defines rule (`{age: int, min: 18}`) | No Hallucinations     |
+| **Expansion**    | Limited by AI context               | Infinite (Python loop)                  | 100+ TCs easy         |
+| **Data Quality** | "Random" or "Placeholder"           | Precise BVA (Min-1, Max+1)              | Guaranteed edge cases |
+| **Visual QA**    | Separate Step                       | Parallel Stream                         | Integrated coverage   |
 
 ---
 
-## 🛠 Component Map
+## 🛠 Component Map (v5.0)
 
-| Component             | Responsibility      | Tech Stack              |
-| :-------------------- | :------------------ | :---------------------- |
-| `main.py`             | Orchestrator        | Python CLI              |
-| `markdown_parser.py`  | Input Reader        | Regular Expressions     |
-| `prompts.py`          | AI Instructions     | Prompt Engineering      |
-| `data_fuzzer.py`      | Data Enrichment     | **Hypothesis**          |
-| `template_engine.py`  | Document Generation | Jinja2                  |
-| `visual_validator.py` | Visual QA           | **Native Agent Vision** |
-| `validator.py`        | Quality Assurance   | PyTest / Schema         |
-
----
-
-## 📈 Future Roadmap
-
-- [ ] **Direct Jira Integration:** Push Validated TCs to Jira Board.
-- [ ] **Excel High-Fidelity:** Generate `.xlsx` with colors and macros.
-- [ ] **Visual Diffing:** Pixel-perfect design vs implementation check.
-- [ ] **Test Execution:** Generate `pytest`/`playwright` scripts directly.
+| Component             | Responsibility                               | Status      |
+| :-------------------- | :------------------------------------------- | :---------- |
+| `main.py`             | Orchestrator                                 | ✅ Existing |
+| `schema_models.py`    | **(NEW)** Pydantic Models for Data Schema    | ⬜ To Do    |
+| `matrix_engine.py`    | **(NEW)** Python Logic for BVA/Combinatorics | ⬜ To Do    |
+| `prompts.py`          | Updated with `SCHEMA_EXTRACTION_PROMPT`      | 🔄 Update   |
+| `visual_validator.py` | Eagle Eye Integration                        | ✅ Existing |
+| `validator.py`        | Final Sanity Check                           | ✅ Existing |

@@ -43,8 +43,15 @@ class TestSuite:
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # Handle both root dict with 'test_cases' key and direct list
-        cases_data = data.get("test_cases", []) if isinstance(data, dict) else data
+        if isinstance(data, dict):
+            # Check for legacy flat list
+            if "test_cases" in data:
+                cases_data = data["test_cases"]
+            else:
+                # Handle new sectioned structure
+                cases_data = data.get("functional_testcases", []) + data.get("non_functional_testcases", [])
+        else:
+            cases_data = data
         
         return cls(test_cases=[TestCase.from_dict(tc) for tc in cases_data])
 

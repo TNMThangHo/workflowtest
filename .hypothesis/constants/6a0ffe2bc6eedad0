@@ -1,0 +1,4 @@
+# file: D:\workflowTesting\test-gen\markdown_generator.py
+# hypothesis_version: 6.151.4
+
+[' |', ' | ', '&#124;', '**Thông tin chung:**', '-', '---', '0.0%', ':---', '<br>', 'Accessibility', 'Analytics', 'Availability', 'Category', 'Compatibility', 'Create Date', 'Execute Date', 'Expected Result', 'ID', 'Module', 'New', 'P0', 'P1', 'P2', 'P3', 'Pass Criteria', 'Performance', 'Pre-condition', 'Priority', 'Reliability', 'Security', 'Status', 'Step', 'Test Data', 'Title', 'Tools/Env', 'Usability', '[ ]', 'category', 'created_date', 'execute_date', 'expected_result', 'functional_testcases', 'id', 'module', 'nft_categories', 'pass_criteria', 'pre_condition', 'priority', 'status', 'steps_short', 'test_data', 'title', 'tools', 'x', '|', '| ', '| :--- | :--- |', '| Chỉ số | Giá trị |', '| | | | |']

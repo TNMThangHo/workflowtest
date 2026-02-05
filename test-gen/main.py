@@ -109,11 +109,16 @@ def run_extract(prd_path):
     run_extraction(prd_path)
     return True
 
+def run_enrich():
+    log.info("🚀 Starting Phase: HYPOTHESIS ENRICHMENT...")
+    from .data_fuzzer import enrich_test_cases
+    return enrich_test_cases()
+
 def main():
     setup_dirs()
     
     parser = argparse.ArgumentParser(description="Test Gen Orchestrator v2")
-    parser.add_argument("--step", choices=["prepare", "format", "validate", "report", "sync", "add", "extract", "init", "finish", "update-report"], required=True)
+    parser.add_argument("--step", choices=["prepare", "format", "validate", "report", "sync", "add", "extract", "init", "finish", "update-report", "enrich"], required=True)
     parser.add_argument("--prd", type=str, help="Path to PRD file")
     parser.add_argument("--filename", type=str, default="tc_001", help="Output filename for test cases")
     parser.add_argument("--input", type=str, help="Input file for report/sync")
@@ -139,11 +144,14 @@ def main():
             log.error("❌ --prd is required for finish step")
             sys.exit(1)
         
-        # 1. Format
+        # 1. Enrich (NEW)
+        run_enrich() # Attempt to enrich before formatting
+
+        # 2. Format
         fmt_success = run_format(args.prd, args.filename)
         if not fmt_success: sys.exit(1)
             
-        # 2. Validate
+        # 3. Validate
         val_success = run_validate(args.prd)
         if not val_success: 
             log.warning("⚠️ Validation failed. Attempting Auto-Fix logic could go here.")
@@ -154,6 +162,8 @@ def main():
             
     elif args.step == "prepare":
         run_prepare()
+    elif args.step == "enrich":
+        run_enrich()
     elif args.step == "extract":
         if not args.prd:
             log.error("❌ --prd is required for extraction")

@@ -145,7 +145,10 @@ class Exporter:
         from datetime import datetime
         
         # Extract data
-        test_cases = data.get('test_cases', [])
+        if 'test_cases' in data and isinstance(data['test_cases'], list):
+            test_cases = data['test_cases']
+        else:
+            test_cases = data.get('functional_testcases', []) + data.get('non_functional_testcases', [])
         metadata = data.get('metadata', {})
         
         if not test_cases:

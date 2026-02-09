@@ -1,5 +1,8 @@
 from typing import List, Dict, Any
-from .schema_models import SmartSchema, FieldType, BusinessRule, VisualRule
+try:
+    from .schema_models import SmartSchema, FieldType, BusinessRule, VisualRule
+except ImportError:
+    from schema_models import SmartSchema, FieldType, BusinessRule, VisualRule
 
 class MatrixEngine:
     """

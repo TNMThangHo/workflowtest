@@ -1,6 +1,6 @@
 # 🛡️ The Antigravity Testing Standard (Test Ruleset)
 
-**Status**: ACTIVE | **Version**: 2.2 | **Enforcement**: STRICT
+**Status**: ACTIVE | **Version**: 5.0 (Smart Schema Edition) | **Enforcement**: STRICT
 
 ## 1. Core Philosophy: "Defense in Depth"
 
@@ -15,81 +15,78 @@ This document verifies NOT just "if it works", but "if it can fail".
 
 ## 2. Functional Precision & Data Validation
 
-### 2.1. Strict Input Validation (The "Zero Trust" Policy)
+### 2.1. Strict Input Validation (The "Atomic Splitting" Protocol)
 
-Every input field must be tested against these specific vectors:
+**Goal**: Convert 1 Requirement into at least 4 Test Cases.
 
-- **Whitespace Handling**:
-  - Leading/Trailing spaces must be TRIMMED before processing.
-  - " " (Space only) must be treated as EMPTY/NULL.
-- **Data Type integrity**:
-  - Injecting `String` into `Number` fields.
-  - Injecting `Boolean` into `Enum` fields.
-  - Special Characters: Emojis, SQL Injection chars (`' --`), HTML/Script tags (`<script>`).
-- **Boundaries**:
-  - `Min Length - 1` (Underflow)
-  - `Max Length + 1` (Overflow)
-  - Exact Boundaries.
+| Requirement Type | Splitting Strategy                                                                                                           |
+| :--------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| **Input Fields** | 1. Valid Input (Happy Path)<br>2. Empty/Null (Validation)<br>3. Max Length + 1 (Boundary)<br>4. Special Chars/XSS (Security) |
+| **Filters**      | 1. Single Select<br>2. Multi-Select<br>3. Select All<br>4. No Result Found                                                   |
+| **Workflow**     | 1. Forward (Happy)<br>2. Backward (Cancel/Undo)<br>3. Interrupted (Network Fail)<br>4. Permission Denied                     |
 
 ### 2.2. State Transition Integrity
 
-- **Illegal States**: Attempting to skip steps (e.g., "Checkout" without "Cart", "Payment" without "Address").
+- **Illegal States**: Attempting to skip steps (e.g., "Checkout" without "Cart").
 - **Idempotency**: Clicking "Submit" multiple times rapidly (Race condition check).
 - **Concurrency**: Two users editing the same record simultaneously.
 
-### 2.3. Business Logic Constraints
+### 2.3. Matrix Testing Strategy (Combinatorial)
 
-- **Role Isolation**: Can a 'Viewer' trigger an 'Admin' API endpoint directly?
-- **Data Ownership**: Can User A access User B's resource ID by changing the URL param? (IDOR).
-- **Hard Limits**: Testing system limits (max items in cart, max file upload size).
+Refer to the "Orthogonal Array" method for combinatorics.
+
+- If there are 3 Filters (A, B, C), do not just test A, B, C separately.
+- **MUST TEST**: A+B, B+C, A+B+C.
 
 ---
 
-## 3. UI/UX Perfection Standards
+## 3. UI/UX Perfection Standards (Eagle Eye)
 
 **Goal**: The app must not only work but look and feel Premium.
 
 ### 3.1. Visual Fidelity (vs Design)
 
-- **Pixel/Spacing**: Margins and paddings must match the Design System tokens (4px, 8px, 16px...).
-- **Typography**: No generic fonts (Time New Roman/Arial) unless specified. Checking correct Weights (Bold vs Semibold).
-- **Empty States**: Every list/table must have a designed "No Data" state, not just blank space.
+- **Pixel/Spacing**: Margins and paddings must match Design System tokens.
+- **Typography**: No generic fonts. Check weights (Bold vs Semibold).
+- **Empty States**: Must verify "No data found" illustration, not just blank space.
 
 ### 3.2. Responsive & Adaptive
 
-- **Breakpoints**: Test at 320px (Mobile S), 768px (Tablet), 1024px+ (Desktop).
-- **Content Scaling**: Long text must truncate (`...`) or wrap gracefully, NEVER break layout.
+- **Breakpoints**: Test at 320px, 768px, 1024px+.
+- **Content Scaling**: Long text must truncate (`...`) or wrap, NEVER break layout.
 
 ### 3.3. Interaction & Feedback
 
-- **Loading States**: Skeletons or Spinners must appear for any async action > 300ms.
-- **Feedback**:
-  - Success: Toast/Notification (Green).
-  - Error: User-friendly message (Red), NO "Server Error 500" raw dumps.
-  - Button State: Buttons must be DISABLED while loading.
+- **Loading States**: Skeletons or Spinners must appear for async actions > 300ms.
+- **Error State**: Verify red border and text specific to the error.
+- **Feedback**: Success (Green Toast), Error (Red Message).
 
 ---
 
-## 4. Security & Compliance Protocol
+## 4. Security & Compliance (The "Dark Path")
 
-### 4.1. Authentication & Session
+### 4.1. Negative Testing Focus
 
-- **Token Expiry**: Actions after token expires must redirect to Login cleanly.
-- **Logout**: Must invalidate session server-side.
+- **Ratio**: 30% Positive / 70% Negative.
+- **Focus**:
+  - Double Submit (Click button twice fast).
+  - SQL Injection in Search fields (`' OR 1=1`).
+  - XSS in Name fields (`<script>`).
+  - IDOR (Change ID in URL).
+
+### 4.2. Authentication & Session
+
+- **Token Expiry**: Redirect to Login cleanly.
+- **Logout**: Invalidate session server-side.
 - **Public vs Private**: Verify private routes redirect unauthenticated users.
-
-### 4.2. Sensitive Data
-
-- **Passwords**: Never visible in plain text (Input type=`password`).
-- **PII**: Emails, Phones should be masked in logs/non-admin UIs if required.
 
 ---
 
 ## 5. Performance & Reliability
 
-- **Timeouts**: What happens if the API takes 30s to respond? (Client should handle gracefully).
-- **Network Failure**: Disconnect internet -> Click Action -> Should show "Network Error".
-- **Pagination**: Lists > 20 items must be paginated or lazy-loaded.
+- **Timeouts**: Client should handle API delays > 30s gracefully.
+- **Network Failure**: Show "Network Error" on disconnect.
+- **Pagination**: Lists > 20 items must be paginated.
 
 ---
 
@@ -98,45 +95,21 @@ Every input field must be tested against these specific vectors:
 When Antigravity generates Test Cases, they MUST follow this JSON/Excel structure:
 
 - **ID**: `[Feature]-[Sub]-[001]`
-- **Title**: Action + Context + expected Result.
+- **Title**: Action + Context + Expected Result.
 - **Pre-condition**: Precise setup state.
 - **Steps**: Numbered, atomic actions.
-- **Test Data**: Exact strings/numbers used.
-- **Expected Result**:
-  - UI Change: "Toast appears..."
-  - Data Change: "Record created in DB..."
-  - System State: "User redirected to..."
-- **Type**: `Functional` | `UI/UX` | `Security` | `Performance`
+- **Expected Result**: Detailed outcome (UI Change, Data Change).
+- **Type**: `Functional` | `Visual` | `Security` | `Performance`
 - **Priority**: `P0` (Blocker) | `P1` (Critical) | `P2` (Major) | `P3` (Minor)
 
 ### 6.1. Excel Format Requirements
 
-**Testcase Excel Schema:**
+- **Created Date** (Format: `YYYY-MM-DD`): Timestamp when added.
+- **Update Logic**: Append new rows, preserve existing formatting.
 
-When generating or updating testcase Excel files, include these mandatory columns:
+### 6.2. JSON Output Schema (Smart Schema v5.0)
 
-- **Created Date** (Format: `YYYY-MM-DD`): Timestamp when the test case was added
-  - For initial generation: All rows have the same creation date
-  - For `/update-tc`: New rows have current date, existing rows keep original date
-  - Purpose: Transparency and audit trail for test case lifecycle
-
-**Update Workflow Rules:**
-
-- When using `/update-tc`:
-  - NEVER delete existing test cases
-  - ALWAYS append new test cases at the end
-  - PRESERVE all formatting, themes, and column widths
-  - ADD "Created Date" column if not present (mark all as current date)
-- When using `/update-tr`:
-  - UPDATE only: Status, Actual Result, Evidence, Execution Date
-  - PRESERVE: TestCase ID, Description, Expected Result, Test Steps, Priority
-  - RECALCULATE summary statistics automatically
-
-### 6.2. JSON Output Schema for Agents (STRICT ENFORCEMENT)
-
-**CRITICAL**: All AI-generated JSON outputs MUST adhere to this exact schema to be compatible with the automation pipeline.
-
-**Required JSON Structure:**
+**Critical**: AI-generated JSON must adhere to the Smart Schema format for the Matrix Engine.
 
 ```json
 {
@@ -154,68 +127,14 @@ When generating or updating testcase Excel files, include these mandatory column
 }
 ```
 
-**Validation Constraints:**
-
-1. **Root Object**: Must be a Dictionary with key `"test_cases"` (List). Do NOT return a raw List.
-2. **Key Casing**: All keys MUST be **lowercase** (e.g., `id`, `title`, `steps`). Do NOT use TitleCase (e.g., `ID`, `Description`).
-3. **ID Format**: MUST start with `TC-`. Example: `TC-SIGNUP-VAL-001`.
-4. **Performance Units**:
-   - API Response: `ms` (milliseconds). E.g., `< 5000ms` (NOT `5s`).
-   - Timeouts/Delays: `s` (seconds). E.g., `10s`.
-5. **Browser Keywords**: If testing compatibility, MUST include the exact browser name in the `Description`/`Title` (Chrome, Firefox, Safari, Edge, Opera Mini).
-
 ---
 
-## 7. Risk Assessment Matrix
+## 7. Requirement Explosion Protocol
 
-| Probability \ Impact   | Minor (Cosmetic) | Major (Function) | Critical (Data/Auth) |
-| :--------------------- | :--------------- | :--------------- | :------------------- |
-| **High (Common)**      | Medium           | High             | **Blocker**          |
-| **Medium (Edge case)** | Low              | Medium           | High                 |
-| **Low (Rare)**         | Info             | Low              | Medium               |
+**CRITICAL RULE**: Do not map 1 Requirement to 1 Test Case. You must "explode" requirements into exhaustive scenarios using the **Atomic Splitting Protocol** defined in Section 2.1.
 
----
+Mandatory Check:
 
-## 8. The Requirement Explosion Protocol (Exploding TCs)
-
-**CRITICAL RULE**: Do not map 1 Requirement to 1 Test Case. You must "explode" requirements into exhaustive scenarios.
-
-For **EVERY INPUT FIELD** found in the PRD, you MUST generate at least **4 Test Cases**:
-
-1.  **Golden Path**: Valid input -> Success.
-2.  **Validation (Empty/Null)**: Leave field empty -> Error Required.
-3.  **Boundary/Constraints**: Max length, Invalid format, Special characters -> Error Specific.
-4.  **Security/Sanitization**: XSS payload, SQLi payload -> Sanitized or Rejected.
-
-For **EVERY FORM**, you MUST generate:
-
-1.  **Happy Path**: All valid -> Success.
-2.  **Validation Error**: One invalid field -> Error displayed.
-3.  **System Edge Case**: Network disconnect or Server 500 -> Graceful handling (no crash).
-
-For **EVERY FEATURE**, you MUST check for implied NFRs even if brief in PRD:
-
-1.  **Analytics**: If analytics mentioned, generate TCs for Event Firing.
-2.  **Rate Limiting**: If security mentioned, generate TCs for Brute-force/Spam.
-
----
-
-## 9. Mandatory Coverage Checklist (The "AI Self-Correction")
-
-**CRITICAL**: Before finishing any test generation task, the Agent MUST scan the PRD for the following sections. If a section exists in the PRD, you MUST generate at least one corresponding test case.
-
-| PRD Section / Keywords            | Required Test Case Type      | Example ID           |
-| :-------------------------------- | :--------------------------- | :------------------- |
-| **Analytics** / Tracking / Events | `Functional` or `Analytics`  | `TC-[FEAT]-ANA-001`  |
-| **Security** / Rate Limit / Auth  | `Security`                   | `TC-[FEAT]-SEC-001`  |
-| **Performance** / Response Time   | `Performance`                | `TC-[FEAT]-PERF-001` |
-| **Navigation** / Link / Redirect  | `Functional` or `Navigation` | `TC-[FEAT]-NAV-001`  |
-| **Error Handling** / 500 / 400    | `Functional` or `Error`      | `TC-[FEAT]-ERR-001`  |
-
-> **Process**:
->
-> 1. Read PRD (file attachment by user or file have name include "prd" text uppercase/lowercase).
-> 2. List all headers (e.g., "5. Analytics").
-> 3. Generate Core Functional Tests, UI/UX Tests, Performance Tests, Sercurity Testes by skill testing: BVA, EP, Decision Table, State Transition and Error Guessing
-> 4. **CHECK**: Did I cover Section 5 (Analytics)? -> No? -> **GENERATE NOW**.
-> 5. **CHECK**: Did I cover Input Fields (Explosion)? -> No? -> **GENERATE NOW**.
+1.  **Input Fields**: 4 TCs per field.
+2.  **Forms**: Happy Path + Validation Error + System Edge Case.
+3.  **Features**: Check for Analytics, Rate Limiting, and Performance.

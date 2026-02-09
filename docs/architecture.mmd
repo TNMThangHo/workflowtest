@@ -1,0 +1,49 @@
+graph TD
+    %% Inputs
+    User((User)) -->|PRD + Screen| Engine[Orchestrator]
+    Engine -->|Input| Context{Context Builder}
+
+    %% LAYER 1: The Brain (AI)
+    subgraph "L1: KNOWLEDGE EXTRACTION (AI)"
+        Context -->|Prompt: Extract Schema| AI_Arch{AI Architect}
+        
+        AI_Arch -->|JSON Schema| Schema("DATA SCHEMA<br/>{field: 'age', type: 'int', min:18}")
+
+        style Schema fill:#ff9,stroke:#333
+    end
+
+    %% LAYER 2: The Factory (Python)
+    subgraph "L2: MATRIX EXPANSION (Python)"
+        Schema -->|Valid Models| Matrix[Matrix Engine]
+        
+        %% Expansion Logic
+        Matrix -->|Rule: Integer| BVA[Boundary Value Analysis]
+        Matrix -->|Rule: String| Sec[Security Payloads]
+        Matrix -->|Rule: Enum|  Comb[Combinatorial]
+        Matrix -->|Sanitize| Fuzz[Data Fuzzer]
+        
+        BVA & Sec & Comb & Fuzz --> GenCases[Generated Atomic Cases]
+    end
+
+    %% LAYER 3: Visual Intelligence
+    subgraph "L3: VISUAL INTELLIGENCE"
+        Engine -->|Image| EagleEye[Eagle Eye]
+        EagleEye -->|UX Rules| VisualCases[Visual Test Cases]
+        
+        VisualCases --> Merger
+        GenCases --> Merger
+    end
+
+    %% LAYER 4: Realization
+    subgraph "L4: ASSEMBLY & VALIDATION"
+        Merger{Merger} --> Builder[Markdown Builder]
+        Builder --> FinalDoc[Final Doc] 
+        
+        FinalDoc --> Validator{Quality Gate}
+        Validator -->|Pass| Success((Done))
+        Validator -->|Fail| Loop[Self-Correction]
+    end
+
+    %% Styles
+    style AI_Arch fill:#f9f,stroke:#333
+    style Matrix fill:#bbf,stroke:#333

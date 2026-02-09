@@ -34,13 +34,15 @@ Workflow này **TỰ ĐỘNG HÓA TỐI ĐA** từ khâu đọc PRD đến khi r
         - Dựa trên hình ảnh vừa xem, sinh danh sách Test Case JSON (category='Visual') kiểm tra: Layout, Contrast, Typography, Premium Feel.
         - _Lưu ý_: Không cần chạy script bên ngoài, hãy dùng khả năng nhìn của chính bạn.
 
-    - **Step 2.2: Functional & Logic Generation**:
-      - Đọc `output/requirements.json`.
-      - Đọc `testRuleset.md`, `best_practices.md`.
-      - **GENERATE**:
-        - Viết JSON đầy đủ vào `output/raw_testcases.json`.
-        - **MERGE**: Kết hợp Test Case từ PRD (Step 2.2) và Test Case từ Visual AI (Step 2.1) nếu có.
-        - **CRITICAL**: Phải bao phủ 100% Atomic Requirements + Visual Standards.
+    - **Step 2.2: Smart Schema Generation (v5.0)**:
+      - **Input**: Đọc `output/requirements.json` và PRD.
+      - **Action**: Đóng vai trò "Architect", trích xuất dữ liệu thành file **JSON Schema** theo cấu trúc trong `docs/testRuleset.md` (Smart Schema section).
+      - **Output**: Lưu file tại `output/schema_input.json`.
+      - **CRITICAL**: Không được tự viết test case. Chỉ viết Schema (Fields, Rules).
+
+    - **Step 2.3: Matrix Explosion**:
+      - **Command**: `python -m test-gen.main --step explode --schema output/schema_input.json`
+      - **Effect**: Tool Matrix Engine sẽ tự động nhân bản Schema thành 50-100 Test Case (Valid/Invalid/Security/Edge) vào `output/raw_testcases.json`.
 
 3.  **Click 2: Hoàn thiện (Finish)**:
     // turbo

@@ -80,7 +80,10 @@ pip install -r requirements.txt
 python -m test-gen.main --step init --prd input/yourFeature.md
 
 # 2. Generate & Format (Smart Schema Expansion)
+# 2. Generate & Format (Smart Schema Expansion)
 python -m test-gen.main --step finish --prd input/yourFeature.md --filename tc_auto
+
+> **Crucial for v5.0**: To enable Smart Schema (60+ TCs), the AI Agent MUST first act as the "Architect" to generate `output/schema_*.json` from the PRD using `testRuleset.md` logic. The standard command above only runs the Python Matrix Engine if a schema exists.
 ```
 
 **Or use AWF workflow:**

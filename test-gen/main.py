@@ -118,7 +118,7 @@ def main():
     setup_dirs()
     
     parser = argparse.ArgumentParser(description="Test Gen Orchestrator v2")
-    parser.add_argument("--step", choices=["prepare", "format", "validate", "report", "sync", "add", "extract", "init", "finish", "update-report", "enrich"], required=True)
+    parser.add_argument("--step", choices=["prepare", "format", "validate", "report", "sync", "add", "extract", "init", "finish", "update-report", "enrich", "explode"], required=True)
     parser.add_argument("--prd", type=str, help="Path to PRD file")
     parser.add_argument("--filename", type=str, default="tc_001", help="Output filename for test cases")
     parser.add_argument("--input", type=str, help="Input file for report/sync")
@@ -131,6 +131,8 @@ def main():
     parser.add_argument("--expected", help="Expected Result")
     parser.add_argument("--priority", default="P2", help="Priority")
     
+    parser.add_argument("--schema", type=str, default="output/schema_input.json", help="Schema path for explode step")
+
     args = parser.parse_args()
     
     if args.step == "init":
@@ -139,6 +141,10 @@ def main():
             sys.exit(1)
         run_prepare()
         run_extract(args.prd)
+    elif args.step == "explode":
+        from .exploder import run_explode
+        success = run_explode(args.schema)
+        if not success: sys.exit(1)
     elif args.step == "finish":
         if not args.prd:
             log.error("❌ --prd is required for finish step")

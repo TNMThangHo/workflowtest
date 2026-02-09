@@ -320,6 +320,11 @@ class Exporter:
             
             # Ensure all required fields
             prepared_tc.setdefault('tools', '-')
+            
+            # Map expected/expected_result to pass_criteria if not present
+            if 'pass_criteria' not in prepared_tc or not prepared_tc['pass_criteria']:
+                prepared_tc['pass_criteria'] = prepared_tc.get('expected_result') or prepared_tc.get('expected')
+
             prepared_tc.setdefault('pass_criteria', '-')
             prepared_tc.setdefault('created_date', '')
             prepared_tc.setdefault('execute_date', '')

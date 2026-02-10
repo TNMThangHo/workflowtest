@@ -97,7 +97,8 @@ def categorize_testcases(test_cases: List[Dict[str, Any]]) -> tuple:
     # Define Functional types (both code and full names)
     functional_types = [
         'FUNC', 'VAL',  # Code types
-        'Functional', 'Validation'  # Full names from AI
+        'Functional', 'Validation',  # Full names from AI
+        'Business Logic' # [NEW v2.3] Treated as Functional
     ]
     
     for tc in test_cases:

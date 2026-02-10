@@ -17,4 +17,23 @@
   - [ ] Add `_expand_document_detail` (Metadata, Versioning, Linking).
   - [ ] Add `_expand_task_progress` (Formula, Auto-update).
   - [ ] Enhance Tree/Org Drag&Drop (Highlight, Validation).
-- [ ] Verify with `projectPrd.md`.
+- [x] Implement Matrix Engine v2.1 (Semantic Exploder).
+  - [x] Implement `_expand_roles_and_permissions` (Manager, Creator, Approver).
+  - [x] Implement `_expand_filter_dependencies` (Region -> Area).
+  - [x] Implement `_expand_approval_flows` (Multi-level, Rejection).
+  - [x] Implement `_expand_concurrency` (Same-level approver).
+- [x] Verify with `ApprovalPrd.md` (Target: +30 TCs).
+- [x] Implement Matrix Engine v2.2 (Filling Critical Gaps).
+  - [x] Implement `_expand_search_advanced` (Multi-select, Dropdown Search, Keyword content+name+desc).
+  - [x] Implement `_expand_ui_ux_gaps` (Link Navigation, Color Coding, Notifications).
+  - [x] Implement `_expand_security_implicit` (Unauthorized Actions for non-approvers).
+  - [x] Refine `_expand_approval_flows` (Explicit Single vs Multi Level states).
+- [x] Implement Matrix Engine v2.3 (Final Polish).
+  - [x] Fix Duplicates in Concurrency vs Approval Flow.
+  - [x] Force Multi-select TCs for all Filter Selects (Area/Region/Status).
+  - [x] Add Explicit Detail Popup Field Verification.
+- [x] Verify with `ApprovalPrd.md` (Target: 127 TCs).
+- [x] Implement Matrix Engine v2.4 (Human Titles & Polish).
+  - [x] Implement Smart Title Extraction (`_get_rule_summary`).
+  - [x] Replace robotic suffixes with Professional terms ("Standard Flow", "Violation Check").
+  - [x] Test Case Verification (Human-QA Style).

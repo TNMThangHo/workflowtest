@@ -43,12 +43,20 @@ class MatrixEngine:
                              "List shows records matching BOTH criteria.", "P2")
                 start_idx += 1
 
+    def _get_rule_summary(self, text: str) -> str:
+        """ Helper: Extracts a short summary from rule description (e.g. before the first colon). """
+        if ":" in text:
+            return text.split(":")[0].strip()
+        return " ".join(text.split()[:7]) + "..."
+
     def _convert_rule_v2(self, rule: BusinessRule):
         """
         [NEW] Explodes 1 Business Rule into 3 scenarios (Positive, Negative, Boundary).
         """
+        summary = self._get_rule_summary(rule.description)
+        
         # Scenario 1: Happy Path (Positive)
-        self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {rule.description[:50]}... - Happy Path", 
+        self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {summary} - Standard Flow", 
                      f"Condition: {rule.condition} (Satisfied)", 
                      f"Result: {rule.expected_result}", 
                      priority=rule.priority)
@@ -57,14 +65,14 @@ class MatrixEngine:
         keywords = ["if", "must", "only", "required", "restrict", 
                    "nếu", "chỉ", "bắt buộc", "không được", "phải"]
         if any(keyword in rule.description.lower() for keyword in keywords):
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {rule.description[:50]}... - Negative Case", 
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {summary} - Violation Check", 
                      f"Condition: Violate '{rule.condition}'", 
                      "Result: Action blocked / Error message displayed.", 
                      priority="P2")
 
         # Scenario 3: State Transition (if detected)
         if "status" in rule.expected_result.lower() or "trạng thái" in rule.expected_result.lower():
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: State Transition Check", 
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {summary} - Status Update", 
                      f"Trigger: {rule.condition}", 
                      f"Verify Status changes to: {rule.expected_result}", 
                      priority="P1")
@@ -79,6 +87,177 @@ class MatrixEngine:
                      "1. Select 'Reject'.\n2. Leave Reason empty.\n3. Submit.", 
                      "Error: Reason is required.", "P1")
 
+    def _expand_roles_permissions(self, rule: BusinessRule):
+        """ [NEW] Generates Role-Based Access Control (RBAC) tests """
+        roles = ["Manager", "Creator", "Approver", "Admin", "User", "Quản lý", "Người tạo", "Người duyệt", "Phụ trách"]
+        found_roles = [r for r in roles if r.lower() in rule.description.lower()]
+        
+        if found_roles:
+            for role in found_roles:
+                 self._add_tc("Security", f"Verify Rule {rule.id or ''}: Permission Check - Role '{role}'", 
+                     f"1. Login as '{role}'.\n2. Perform action defined in rule.", 
+                     f"System respects '{role}' privileges (Allow/Deny).", "P1")
+            
+            # Dual Role High Value Case
+            if len(found_roles) >= 2:
+                 self._add_tc("Security", f"Verify Rule {rule.id or ''}: Dual Role Context ({found_roles[0]} + {found_roles[1]})", 
+                     f"1. Login as User with BOTH '{found_roles[0]}' and '{found_roles[1]}'.", 
+                     "System grants combined privileges (Union of permissions).", "P1")
+
+    def _expand_approval_flows(self, rule: BusinessRule):
+        """ [NEW] Generates Approval Flow transitions """
+        desc = rule.description.lower()
+        if "cấp" in desc or "level" in desc or "trình tự" in desc or "flow" in desc:
+             # Multi-level
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Full Approval", 
+                     "1. Level 1 Approve.\n2. Level 2 Approve.\n3. ... Level N Approve.", 
+                     "Final Status: Approved/Completed.", "P1")
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Mid-stream Rejection", 
+                     "1. Level 1 Approve.\n2. Level 2 REJECT.", 
+                     "Status reverts to In Progress/Rejected. Level 1 decision overridden.", "P1")
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Constraint Check", 
+                     "1. Level 1 Pending.\n2. Try to Approve as Level 2.", 
+                     "Action Blocked / Button Disabled.", "P2")
+
+    def _expand_concurrency(self, rule: BusinessRule):
+        """ [NEW] Generates Concurrency/Group Logic """
+        desc = rule.description.lower()
+        if any(k in desc for k in ["any", "all", "đồng thuận", "nhóm", "group", "cùng 1 cấp"]):
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Group Consensus - First Actor Wins", 
+                     "1. User A (Group 1) approves.\n2. User B (Group 1) views request.", 
+                     "User B sees request as 'Approved' (No action needed).", "P1")
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Group Consensus - Simultaneous Action", 
+                     "1. User A and User B click 'Approve' at exact same time.", 
+                     "System handles race condition (Single success or Idempotent).", "P2")
+
+    def _expand_search_advanced(self, section):
+        """ [NEW v2.2] Explodes Search Scenarios (Multi-select, Dropdown Search, Advanced Keyword) """
+        for field in section.fields:
+            desc_lower = (field.description or "").lower()
+            name_lower = field.name.lower()
+            
+            # 1. Multi-select Support (Forced for all Filter Selects)
+            # [FIXED v2.3] Removed strict "multi/nhiều" check to ensure coverage for Area/Region/Status
+            if field.type in ["select", "param"]:
+                 self._add_tc("Business Logic", f"Verify {field.name} - Multi-select Filter", 
+                     f"1. Select Value A.\n2. Select Value B.\n3. Apply Filter.", 
+                     "List shows records matching A OR B (based on logic).", "P1")
+
+            # 2. Dropdown Search
+            if field.type in ["select", "param"] and ("tìm kiếm" in desc_lower or "search" in desc_lower):
+                 self._add_tc("Functional", f"Verify {field.name} - Dropdown Search", 
+                     f"1. Click dropdown.\n2. Type partial text.", 
+                     "Dropdown filters options matching text.", "P2")
+
+            # 3. Advanced Keyword Search
+            if "keyword" in name_lower or "tìm kiếm" in name_lower:
+                self._add_tc("Business Logic", f"Verify {field.name} - Advanced Search (Combinations)", 
+                     "1. Enter text matching 'Content'.\n2. Enter text matching 'Doc Name'.\n3. Enter text matching 'Description'.", 
+                     "Results match any of the fields (OR logic).", "P1")
+
+    def _expand_detail_popup(self, field: FieldType, prefix: str):
+        """ [NEW v2.3] Explicitly Covers Detail Popup Fields """
+        if field.type == "complex_view" or "popup" in field.name.lower():
+            # 1. Verify All Fields Displayed
+            required_fields = ["Nội dung", "Trạng thái", "Người yêu cầu", "Tên dự án", "Vùng - khu vực", "Đường dẫn"]
+            self._add_tc("Visual", f"{prefix} - Verify Popup displays all required fields", 
+                         "1. Open Popup.", 
+                         f"Displays: {', '.join(required_fields)}.", "P2")
+
+    def _expand_ui_ux_gaps(self, section):
+        """ [NEW v2.2] Covers Link Navigation, Notifications, Colors """
+        for field in section.fields:
+            desc_lower = (field.description or "").lower()
+            extra = field.extra_props or {}
+            
+            # 1. Link Navigation (Chuyển đến)
+            if "link" in field.type or "chuyển đến" in desc_lower or "chi tiết" in desc_lower:
+                target = "Detail Screen"
+                if "công việc" in desc_lower: target = "Task Detail"
+                self._add_tc("Functional", f"Verify {field.name} - Link Navigation", 
+                     f"1. Click on '{field.name}' link/button.", 
+                     f"Navigates to {target} successfully.", "P1")
+
+            # 2. Notification (Implicit in Actions)
+            if "action" in field.name.lower() or "hành động" in field.name.lower():
+                 self._add_tc("Functional", f"Verify {field.name} - Notification Alert", 
+                     "1. Perform Action (Approve/Reject).", 
+                     "Notification 'Yêu cầu phê duyệt' appears in 'Activity Log'/'Nhận xét'.", "P2")
+
+    def _expand_security_implicit(self, rule: BusinessRule):
+         """ [NEW v2.2] Implicit Negative Security cases """
+         desc = rule.description.lower()
+         if "permission" in desc or "quyền" in desc:
+             # Add explicit Unauthorized checks for non-approvers
+             self._add_tc("Security", f"Verify Rule {rule.id or ''}: Unauthorized Access - Project Lead", 
+                     "1. Login as 'Project Lead' (Non-Approver).\n2. Try to Approve/Reject.", 
+                     "Action Blocked / Buttons Hidden / Error 'Không được phép thao tác'.", "P1")
+             self._add_tc("Security", f"Verify Rule {rule.id or ''}: Unauthorized Access - Task Lead", 
+                     "1. Login as 'Task Lead' (Non-Approver).\n2. Try to Approve/Reject.", 
+                     "Action Blocked / Buttons Hidden / Error 'Không được phép thao tác'.", "P1")
+
+    def _expand_approval_flows(self, rule: BusinessRule):
+        """ [NEW] Generates Approval Flow transitions """
+        desc = rule.description.lower()
+        if ("đồng thuận" in desc or "group" in desc or "consensus" in desc) and "flow" not in desc:
+            return  # Skip concurrency rules (handled separately)
+
+        if "cấp" in desc or "level" in desc or "trình tự" in desc or "flow" in desc:
+             # Multi-level vs Single Level
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Single Level Flow - Completion", 
+                     "1. Request is Single Level.\n2. Approver Approves.", 
+                     "Status changes quickly to 'Completed' (Hoàn thành).", "P1")
+             
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Level 1 to 2", 
+                     "1. Level 1 Approves.", 
+                     "Status changes to 'Pending Level 2' (Not Completed yet).", "P1")
+
+             # Multi-level Continuation
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Full Approval", 
+                     "1. Level 1 Approve.\n2. Level 2 Approve.\n3. ... Level N Approve.", 
+                     "Final Status: Approved/Completed.", "P1")
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Mid-stream Rejection", 
+                     "1. Level 1 Approve.\n2. Level 2 REJECT.", 
+                     "Status reverts to In Progress/Rejected. Level 1 decision overridden.", "P1")
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Constraints", 
+                     "1. Level 1 Pending.\n2. Try to Approve as Level 2.", 
+                     "Action Blocked / Button Disabled.", "P2")
+            
+             # Visual Cues for Levels
+             self._add_tc("Visual", f"Verify Rule {rule.id or ''}: Visual Cues - Approver Levels", 
+                     "1. View Request as Level 1 and Level 2 Approvers.", 
+                     "Check distinct colors/labels for different levels.", "P2")
+
+    def _expand_concurrency(self, rule: BusinessRule):
+        """ [NEW] Generates Concurrency/Group Logic """
+        # [FIXED v2.3] Removed duplicate approval flow generation
+        desc = rule.description.lower()
+        if any(k in desc for k in ["any", "all", "đồng thuận", "nhóm", "group", "cùng 1 cấp"]):
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Group Consensus - First Actor Wins", 
+                     "1. User A (Group 1) approves.\n2. User B (Group 1) views request.", 
+                     "User B sees request as 'Approved' (No action needed).", "P1")
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Group Consensus - Simultaneous Action", 
+                     "1. User A and User B click 'Approve' at exact same time.", 
+                     "System handles race condition (Single success or Idempotent).", "P2")
+
+    def _expand_dependency_logic(self, section):
+        """ [NEW] Scans fields for 'dependent' logic """
+        for field in section.fields:
+            if field.description and any(k in field.description.lower() for k in ["depend", "phụ thuộc", "theo"]):
+                # Attempt to find parent field from description
+                # Heuristic: verify if any other field name is in this description
+                parent = next((f.name for f in section.fields if f.name in field.description and f.name != field.name), "Parent Field")
+                
+                self._add_tc("Business Logic", f"Verify {field.name} - Dependency on {parent} (Empty)", 
+                     f"1. Leave '{parent}' empty/unselected.", 
+                     f"'{field.name}' is Disabled or Empty.", "P1")
+                self._add_tc("Business Logic", f"Verify {field.name} - Dependency on {parent} (Selected)", 
+                     f"1. Select value in '{parent}'.", 
+                     f"'{field.name}' becomes Enabled/Populated.", "P1")
+                self._add_tc("Business Logic", f"Verify {field.name} - Dependency on {parent} (Changed)", 
+                     f"1. Change value in '{parent}'.", 
+                     f"'{field.name}' resets or updates options.", "P2")
+
     def generate_all(self) -> List[Dict[str, Any]]:
         self.test_cases = []
         
@@ -87,15 +266,27 @@ class MatrixEngine:
             # [NEW] Filter Combinations
             if "filter" in section.name.lower() or "search" in section.name.lower():
                 self._expand_filter_combinations(section)
+                self._expand_search_advanced(section) # [NEW v2.2]
+            
+            # [NEW] Dependency Logic
+            self._expand_dependency_logic(section)
+            self._expand_ui_ux_gaps(section) # [NEW v2.2]
 
             for field in section.fields:
                 self._expand_field(field, section.name)
                 # [NEW] Smart Actions Check
                 self._expand_smart_actions(field, f"Verify {field.name}")
+                # [NEW v2.3] Detail Popup Check
+                self._expand_detail_popup(field, f"Verify {field.name}")
                 
         # 2. Convert Business Rules (Upgraded)
         for rule in self.schema.business_rules:
             self._convert_rule_v2(rule)
+            # [NEW] Semantic Explosion
+            self._expand_roles_permissions(rule)
+            self._expand_security_implicit(rule) # [NEW v2.2]
+            self._expand_approval_flows(rule)    # [UPDATED v2.2]
+            self._expand_concurrency(rule)
             
         # 3. Convert Visual Rules
         for vis in self.schema.visual_rules:
@@ -103,7 +294,7 @@ class MatrixEngine:
             
         # 4. Add E2E Flows
         self._add_e2e_flows()
-
+        
         # 5. Add Global Compatibility
         self._add_global_compatibility()
             

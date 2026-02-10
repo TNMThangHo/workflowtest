@@ -16,7 +16,7 @@ Automate your QA workflow with AI using this "Smart Test Generator". It analyzes
   - Security (XSS, SQLi, HTML/Command/Null Byte Injection)
   - Compatibility (Chrome, Firefox, Safari, Edge, Mobile)
 - **👁️ Eagle Eye Vision (Visual QA)**: Uses Native Agent Vision to critique UI/UX (Layout, Colors, Typography) without external API keys.
-- **🛡️ Hypothesis Integration**: Smart data fuzzing (XSS payloads, Boundary values) injected directly into test steps.
+- **🛡️ Random Fuzzer**: Robust data fuzzing (XSS payloads, Boundary values) using standard Python libraries.
 - **🔒 Strict Validation**: Enforces security checks, performance SLAs, and browser compatibility.
 - **⚡ Zero-Click Workflow**: Two-step process (Init → Finish) handles everything from parsing to formatting.
 
@@ -36,7 +36,7 @@ Automate your QA workflow with AI using this "Smart Test Generator". It analyzes
                                                       │
                                                       ▼
                                               ┌──────────────┐
-                                              │ 60-100+ TCs  │
+                                              │ 90-100+ TCs  │
                                               │  (Detailed)  │
                                               └──────────────┘
 ```
@@ -77,13 +77,12 @@ pip install -r requirements.txt
 
 ```bash
 # 1. Initialize & Extract Schema
-python -m test-gen.main --step init --prd input/yourFeature.md
+python -m test_gen.main --step init --prd input/yourFeature.md
 
 # 2. Generate & Format (Smart Schema Expansion)
-# 2. Generate & Format (Smart Schema Expansion)
-python -m test-gen.main --step finish --prd input/yourFeature.md --filename tc_auto
+python -m test_gen.main --step finish --prd input/yourFeature.md --filename tc_auto
 
-> **Crucial for v5.0**: To enable Smart Schema (60+ TCs), the AI Agent MUST first act as the "Architect" to generate `output/schema_*.json` from the PRD using `testRuleset.md` logic. The standard command above only runs the Python Matrix Engine if a schema exists.
+> **Crucial for v5.0**: To enable Smart Schema (90+ TCs), the AI Agent MUST first act as the "Architect" to generate `output/schema_*.json` from the PRD using `testRuleset.md` logic. The standard command above only runs the Python Matrix Engine if a schema exists.
 ```
 
 **Or use AWF workflow:**
@@ -103,8 +102,9 @@ python -m test-gen.main --step finish --prd input/yourFeature.md --filename tc_a
 | Feature Type     | PRD Complexity                        | Generated TCs | Time |
 | ---------------- | ------------------------------------- | ------------- | ---- |
 | Signup Form      | Basic (6 fields)                      | ~60 TCs       | 15s  |
-| Dashboard        | Medium (10 widgets)                   | ~64 TCs       | 18s  |
+| Dashboard        | Medium (10 widgets)                   | ~80 TCs       | 18s  |
 | Checkout/Payment | Complex (Business Logic + Validation) | **100 TCs**   | 22s  |
+| Approval Flow    | Complex (Workflow + Permissions)      | **91 TCs**    | 20s  |
 
 ## 🧠 Core Strategies
 
@@ -158,13 +158,13 @@ Complex logic like "VAT = (Subtotal - Discount) \* 0.08" automatically becomes:
 workflowtest/
 ├── input/              # Drop PRDs and Images here
 ├── output/             # Generated Test Cases & Schemas
-├── test-gen/           # Core Engine
+├── test_gen/           # Core Engine
 │   ├── main.py         # Orchestrator
 │   ├── schema_models.py # Pydantic Models
 │   ├── matrix_engine.py # Test Case Factory
 │   ├── prompts.py      # AI Prompts
 │   ├── validator.py    # Quality Gates
-│   └── data_fuzzer.py  # Hypothesis Integration
+│   └── data_fuzzer.py  # Random Data Generation
 ├── docs/               # Rulesets and Best Practices
 └── .agent/workflows/   # AWF Automation Scripts
 ```

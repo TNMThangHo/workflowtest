@@ -1,5 +1,26 @@
 # Changelog
 
+## [2026-02-10] - Matrix Engine v2 & Python Package Refactor
+
+### Added
+
+- **Matrix Engine v2 (Rule Explosion)**: Implemented logic to split single business rules into Happy Path, Negative Case, and Boundary/Transition checks.
+- **Pairwise Filter Combinations**: Automatically generates test cases for combined filter scenarios (e.g., Region + Area).
+- **Smart Actions**: Conditional logic verification (e.g., "Reject" action requires "Reason" field).
+- **Visual Checks**: Added verifications for "Empty State", "Long Content", and "Tooltips".
+
+### Changed
+
+- **Package Structure**: Renamed `test-gen` directory to `test_gen` to support standard Python module execution (`python -m test_gen.main`).
+- **Data Enrichment**: Replaced `hypothesis` library with standard `random` to improve stability and remove heavy dependencies.
+
+### Fixed
+
+- **Schema Model**: Added missing `description` field to `FieldType` in `schema_models.py`.
+- **Import Errors**: Resolved relative import issues in `main.py` and `format_output.py`.
+
+---
+
 ## [2026-02-05] - Super Explosion Strategy & Vision QA
 
 ### Added

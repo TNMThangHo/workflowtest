@@ -3,8 +3,12 @@ import sys
 import os
 import subprocess
 import json
-from .logger import log, setup_logger
-from .markdown_parser import PRDParser
+try:
+    from .logger import log, setup_logger
+    from .markdown_parser import PRDParser
+except ImportError:
+    from logger import log, setup_logger
+    from markdown_parser import PRDParser
 
 def setup_dirs():
     if not os.path.exists("output"):
@@ -43,7 +47,7 @@ def run_format(prd=None, filename=None):
 
     # Call existing legacy formatter for now, or we could refactor it too.
     # Keeping legacy call to minimize risk, but wrapped in new logging.
-    cmd = f"{sys.executable} -m test-gen.format_output --input {raw_json}"
+    cmd = f"{sys.executable} -m test_gen.format_output --input {raw_json}"
     if filename:
         cmd += f" --filename {filename}"
     

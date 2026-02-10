@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class FieldType(BaseModel):
     name: str
     type: Literal["text", "email", "password", "number", "date", "select", "checkbox", "radio", "textarea", "file", "chart", "list", "table", "label", "text_display", "tree_view", "kanban_board", "permission_matrix", "tabs", "file_upload", "formula", "relationship", "complex_view"]
+    description: Optional[str] = None
     required: bool = True
     
     # Text/Password Constraints

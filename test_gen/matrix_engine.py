@@ -14,26 +14,97 @@ class MatrixEngine:
         self.schema = schema
         self.test_cases = []
 
+    def _expand_filter_combinations(self, section):
+        """
+        [NEW] Generates combinatorial test cases for filters.
+        Detects optional list/text fields and creates combined scenarios.
+        """
+        filter_fields = [f for f in section.fields if not f.required and f.type in ["select", "radio", "date", "text"]]
+        
+        if len(filter_fields) >= 2:
+            # 1. Verify All Filters Applied
+            names = [f.name for f in filter_fields[:3]] # Limit to 3 to avoid explosion
+            self._add_tc("Business Logic", f"Verify {section.name} - Combined Filter: {', '.join(names)}", 
+                         f"1. Enter/Select valid values for: {', '.join(names)}.\n2. Apply Filter.", 
+                         "List shows only records matching ALL criteria.", "P1")
+            
+            # 2. Verify Clear All
+            self._add_tc("Functional", f"Verify {section.name} - Clear All Filters", 
+                         "1. Apply multiple filters.\n2. Click 'Clear' or 'Reset'.", 
+                         "All filters reset to default. List shows all records.", "P2")
+
+            # 3. [NEW] Pairwise Combinations (up to 10 pairs to avoid explosion)
+            import itertools
+            start_idx = 0
+            for pair in itertools.combinations([f.name for f in filter_fields], 2):
+                if start_idx >= 10: break
+                self._add_tc("Business Logic", f"Verify {section.name} - Combined Filter: {pair[0]} + {pair[1]}",
+                             f"1. Select {pair[0]}.\n2. Select {pair[1]}.\n3. Apply Filter.",
+                             "List shows records matching BOTH criteria.", "P2")
+                start_idx += 1
+
+    def _convert_rule_v2(self, rule: BusinessRule):
+        """
+        [NEW] Explodes 1 Business Rule into 3 scenarios (Positive, Negative, Boundary).
+        """
+        # Scenario 1: Happy Path (Positive)
+        self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {rule.description[:50]}... - Happy Path", 
+                     f"Condition: {rule.condition} (Satisfied)", 
+                     f"Result: {rule.expected_result}", 
+                     priority=rule.priority)
+
+        # Scenario 2: Negative Case (if applicable)
+        keywords = ["if", "must", "only", "required", "restrict", 
+                   "nếu", "chỉ", "bắt buộc", "không được", "phải"]
+        if any(keyword in rule.description.lower() for keyword in keywords):
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {rule.description[:50]}... - Negative Case", 
+                     f"Condition: Violate '{rule.condition}'", 
+                     "Result: Action blocked / Error message displayed.", 
+                     priority="P2")
+
+        # Scenario 3: State Transition (if detected)
+        if "status" in rule.expected_result.lower() or "trạng thái" in rule.expected_result.lower():
+             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: State Transition Check", 
+                     f"Trigger: {rule.condition}", 
+                     f"Verify Status changes to: {rule.expected_result}", 
+                     priority="P1")
+
+    def _expand_smart_actions(self, field: FieldType, prefix: str):
+        """ [NEW] Generates conditional action tests (e.g., Reject requires Reason) """
+        if field.type == "radio" and "Action" in field.name:
+            # Detect Approve/Reject pattern
+            has_reject = any("reason" in opt.lower() or "reject" in opt.lower() for opt in field.options or [])
+            if has_reject:
+                 self._add_tc("Business Logic", f"{prefix} - Reject without Reason", 
+                     "1. Select 'Reject'.\n2. Leave Reason empty.\n3. Submit.", 
+                     "Error: Reason is required.", "P1")
+
     def generate_all(self) -> List[Dict[str, Any]]:
         self.test_cases = []
         
-        # 1. Expand Field Validations (The "Explosion" source)
+        # 1. Expand Field Validations
         for section in self.schema.sections:
+            # [NEW] Filter Combinations
+            if "filter" in section.name.lower() or "search" in section.name.lower():
+                self._expand_filter_combinations(section)
+
             for field in section.fields:
                 self._expand_field(field, section.name)
+                # [NEW] Smart Actions Check
+                self._expand_smart_actions(field, f"Verify {field.name}")
                 
-        # 2. Convert Business Rules to Functional TCs
+        # 2. Convert Business Rules (Upgraded)
         for rule in self.schema.business_rules:
-            self._convert_rule(rule)
+            self._convert_rule_v2(rule)
             
-        # 3. Convert Visual Rules to Visual TCs
+        # 3. Convert Visual Rules
         for vis in self.schema.visual_rules:
             self._convert_visual(vis)
             
-        # 4. Add E2E Flows (Happy Paths)
+        # 4. Add E2E Flows
         self._add_e2e_flows()
 
-        # 5. Add Global Compatibility Checks (Mandatory for Validator)
+        # 5. Add Global Compatibility
         self._add_global_compatibility()
             
         return self.test_cases
@@ -108,6 +179,12 @@ class MatrixEngine:
             self._add_tc("Validation", f"{prefix} - Empty (Required)", 
                          f"1. Leave '{field.name}' empty.\n2. Submit.",
                          "Error: Field is required.", "P1")
+
+        # [NEW] Visual Check (Description/Tooltip)
+        if field.description:
+             self._add_tc("Visual", f"{prefix} - Tooltip/Help Text", 
+                         f"1. Hover over info icon or check below field.",
+                         f"Displays: '{field.description}'", "P3")
         
         # --- Type Specific Expansion ---
         if field.type in ["text", "password", "textarea"]:
@@ -191,6 +268,14 @@ class MatrixEngine:
             self._add_tc("Functional", f"{prefix} - Bulk Delete (if applicable)", 
                          "1. Select multiple rows.\n2. Click 'Delete'.", 
                          "Selected rows deleted. List refreshes.", "P2")
+
+        # 7. [NEW] Edge Cases
+        self._add_tc("Visual", f"{prefix} - Empty State (No Data)",
+                     "1. Apply filter that returns 0 results.",
+                     "Show 'No Data' message/image. Table not broken.", "P2")
+        self._add_tc("Visual", f"{prefix} - Long Content Handling",
+                     "1. Create record with max length text.",
+                     "Text truncated with ellipsis (...) or wrapped inside cell.", "P2")
 
     def _expand_text(self, field: FieldType, prefix: str):
         # Min Length

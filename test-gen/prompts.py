@@ -127,7 +127,7 @@ JSON STRUCTURE (Must match exactly):
       "fields": [
         {{
           "name": "string (e.g. age)",
-          "type": "text" | "email" | "password" | "number" | "select" | "checkbox" | "tree_view" | "kanban_board" | "permission_matrix" | "tabs" | "file_upload",
+          "type": "text" | "email" | "password" | "number" | "select" | "checkbox" | "tree_view" | "kanban_board" | "permission_matrix" | "tabs" | "file_upload" | "table" | "list" | "complex_view" | "relationship" | "formula" | "radio",
           "required": boolean,
           "min_length": int (optional),
           "max_length": int (optional),
@@ -140,7 +140,11 @@ JSON STRUCTURE (Must match exactly):
             "can_upload": boolean,
             "has_versioning": boolean,
             "has_ocr": boolean,
-            "columns": ["Name", "Date"]
+            "columns": ["Name", "Date"],
+            "target_entity": "string",
+            "expression": "string",
+            "tabs": ["Tab1", "Tab2"],
+            "actions": ["Edit", "Delete"]
           }
         }}
       ]
@@ -171,16 +175,26 @@ JSON STRUCTURE (Must match exactly):
 
 CRITICAL RULES:
 1. Output ONLY valid JSON. No markdown blocks.
-2. For "type", infer the best fit. 
+2. **v3 Engine Patterns (MANDATORY USE):**
+   - **List/Grid**: If PRD mentions a list of items, use `table` type.
+     - Add `extra_props: {"columns": ["Col1", "Col2"]}`.
+     - ALWAYS add a separate "Sort By" field (`radio` or `select`) if sorting is mentioned.
+   - **Complex Popup/Modal**: If PRD describes a popup with tabs or actions, use `complex_view`.
+     - Add `extra_props: {"tabs": ["Info", "History"], "actions": ["Edit", "Delete"]}`.
+   - **Relationships**: If a field links to another entity (e.g. Project, Customer), use `relationship`.
+     - Add `extra_props: {"target_entity": "Project"}`.
+   - **Formula/Logic**: If a field is calculated (e.g. Total = Price * Qty), use `formula`.
+     - Add `extra_props: {"expression": "Price * Qty"}`.
+3. For "type", infer the best fit. 
    - If it involves a hierarchy or folders, use "tree_view".
    - If it involves moving items stages (To Do -> Done), use "kanban_board".
    - If it involves assigning roles (Read/Write) to users, use "permission_matrix".
    - If it involves uploading files, use "file_upload".
-3. Extract ALL constraints (min, max, length) accurately.
-4. Business Rules are logical flows (If X then Y).
-5. Visual Rules are UI styles (Color, Layout).
-6. List all active features in "features" list (e.g. OCR, Drag&Drop).
-7. Use "extra_props" to capture specific capabilities like: 
+4. Extract ALL constraints (min, max, length) accurately.
+5. Business Rules are logical flows (If X then Y).
+6. Visual Rules are UI styles (Color, Layout).
+7. List all active features in "features" list (e.g. OCR, Drag&Drop).
+8. Use "extra_props" to capture specific capabilities like: 
    - Tree: can_create_folder, can_delete, has_search, has_filter.
    - Upload: allowed_extensions, max_size_mb.
    - Kanban: columns=["To Do", "Done"], can_move_card.

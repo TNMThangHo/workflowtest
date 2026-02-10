@@ -1,270 +1,140 @@
 {
-  "feature_name": "Project Management",
-  "features": [
-    {
-      "name": "Progress Calculation",
-      "description": "Auto-calculate progress based on task completion %."
-    },
-    {
-      "name": "OCR Processing",
-      "description": "Extract text from uploaded documents (Yellow background during processing)."
-    },
-    {
-      "name": "QR Code",
-      "description": "Generate QR for project access."
-    }
-  ],
+  "feature_name": "Phê duyệt Yêu cầu (Approval Flow)",
   "sections": [
     {
-      "name": "Project List (Filter & Search)",
+      "name": "Bộ lọc tìm kiếm (Search Filters)",
       "fields": [
         {
-          "name": "Project List Table",
+          "name": "Tìm kiếm (Keyword)",
+          "type": "text",
+          "required": false,
+          "description": "Tìm theo nội dung, tên tài liệu, mô tả"
+        },
+        {
+          "name": "Vùng (Region)",
+          "type": "select",
+          "required": false,
+          "description": "Chọn nhiều vùng, có tìm kiếm"
+        },
+        {
+          "name": "Khu vực (Area)",
+          "type": "select",
+          "required": false,
+          "description": "Phụ thuộc vào Vùng. Chỉ active khi đã chọn Vùng."
+        },
+        {
+          "name": "Trạng thái (Status)",
+          "type": "select",
+          "required": false,
+          "description": "Chọn nhiều trạng thái"
+        },
+        {
+          "name": "Người yêu cầu (Requester)",
+          "type": "select",
+          "required": false,
+          "description": "Chọn nhiều, có tìm kiếm tên"
+        }
+      ]
+    },
+    {
+      "name": "Danh sách & Sắp xếp (List & Sort)",
+      "fields": [
+        {
+          "name": "Tiêu chí sắp xếp (Sort By)",
+          "type": "radio",
+          "options": ["Ngày tạo (Mới -> Cũ)", "Ngày cập nhật"],
+          "required": true,
+          "description": "Mặc định là Ngày tạo"
+        },
+        {
+          "name": "Danh sách kết quả (Result Grid)",
           "type": "table",
           "required": true,
           "extra_props": {
             "columns": [
-              "Name",
-              "Code",
-              "Region",
-              "Status",
-              "Manager",
-              "Progress",
-              "Created Date"
-            ],
-            "sortable": true,
-            "pagination": true,
-            "filters": ["Region", "Area", "Manager", "Status"],
-            "row_actions": ["View Detail"]
-          }
-        },
-        {
-          "name": "Search Keyword",
-          "type": "text",
-          "required": false,
-          "max_length": 255
+              "Nội dung",
+              "Trạng thái",
+              "Người yêu cầu",
+              "Dự án",
+              "Vùng-Khu vực",
+              "Link Chi tiết"
+            ]
+          },
+          "description": "Hiển thị danh sách yêu cầu phù hợp bộ lọc"
         }
       ]
     },
     {
-      "name": "General Info & Progress",
+      "name": "Chi tiết & Phê duyệt (Detail & Action)",
       "fields": [
         {
-          "name": "General Info Tab",
-          "type": "tabs",
-          "required": true
-        },
-        {
-          "name": "QR Code Display",
-          "type": "text_display",
-          "required": true
-        },
-        {
-          "name": "Progress Bar",
-          "type": "chart",
-          "required": true,
-          "extra_props": {
-            "description": "Visual representation of percentage. Color coded? verify if 100% is green."
-          }
-        },
-        {
-          "name": "Phase List",
-          "type": "list",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "Document Management (Tab Hồ sơ)",
-      "fields": [
-        {
-          "name": "Document Tree",
-          "type": "tree_view",
-          "required": true,
-          "extra_props": {
-            "can_create_folder": true,
-            "can_create_doc": true,
-            "can_delete": true,
-            "can_drag_drop": true,
-            "has_search": true,
-            "has_filter": true
-          }
-        },
-        {
-          "name": "Upload Document",
-          "type": "file_upload",
-          "required": true,
-          "allowed_extensions": ["PDF", "DOC", "XLS", "IMG"],
-          "max_size_mb": 50,
-          "extra_props": {
-            "has_ocr": true,
-            "has_versioning": true
-          }
-        }
-      ]
-    },
-    {
-      "name": "Task Management (Tab Công việc)",
-      "fields": [
-        {
-          "name": "Task List",
-          "type": "table",
-          "required": true,
-          "extra_props": {
-            "columns": [
-              "Name",
-              "Code",
-              "Phase",
-              "Priority",
-              "Assignee",
-              "Status",
-              "Progress",
-              "Deadline"
-            ],
-            "sortable": true,
-            "pagination": true,
-            "filters": ["Type", "Priority", "Assignee", "Status"],
-            "row_actions": ["Edit", "Delete"]
-          }
-        },
-        {
-          "name": "Task Progress Calculation",
-          "type": "formula",
-          "required": true,
-          "extra_props": {
-            "expression": "(Completed Tasks / Total Tasks) * 100",
-            "triggers": ["Task Status Change", "Task Deleted"]
-          }
-        },
-        {
-          "name": "Task-Document Link",
-          "type": "relationship",
-          "required": false,
-          "extra_props": {
-            "target_entity": "Document",
-            "cardinality": "1-n",
-            "actions": ["Link", "Unlink", "View"]
-          }
-        },
-        {
-          "name": "Task Status Board",
-          "type": "kanban_board",
-          "required": false,
-          "extra_props": {
-            "columns": ["Chuẩn bị", "Đang thực hiện", "Hoàn thành"],
-            "can_move_card": true
-          }
-        },
-        {
-          "name": "Create Task Form",
-          "type": "text",
-          "required": true
-        }
-      ]
-    },
-    {
-      "name": "Document Detail Popup",
-      "fields": [
-        {
-          "name": "Document Metadata View",
+          "name": "Popup Chi tiết (Detail Popup)",
           "type": "complex_view",
-          "required": true,
+          "required": false,
           "extra_props": {
-            "tabs": ["Metadata", "Version History", "Linked Tasks"],
-            "actions": ["Download", "Preview", "Print", "Share"]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Permissions (Tab Phân quyền)",
-      "fields": [
-        {
-          "name": "Permission Matrix",
-          "type": "permission_matrix",
-          "required": true,
-          "extra_props": {
-            "roles": ["Manage", "View", "Input", "Download"]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Create Project (Form)",
-      "fields": [
-        {
-          "name": "Region",
-          "type": "select",
-          "options": ["Miền Bắc", "Miền Trung", "Miền Nam"],
-          "required": true
+            "tabs": ["Thông tin chung", "Lịch sử duyệt"],
+            "actions": ["Chuyển đến công việc", "Đóng"]
+          },
+          "description": "Hiển thị full thông tin khi click vào dòng"
         },
         {
-          "name": "Area",
-          "type": "select",
-          "options": ["Hà Nội", "Đà Nẵng", "TP.HCM"],
-          "required": true
+          "name": "Hành động (Action)",
+          "type": "radio",
+          "options": ["Phê duyệt (Approve)", "Từ chối (Reject)"],
+          "required": true,
+          "description": "Chỉ hiện với Người phê duyệt được gán"
         },
         {
-          "name": "Project Name",
-          "type": "text",
+          "name": "Lý do từ chối (Rejection Reason)",
+          "type": "textarea",
           "required": true,
-          "min_length": 5,
-          "max_length": 200
-        },
-        {
-          "name": "Manager",
-          "type": "select",
-          "required": true,
-          "options": ["User A", "User B"]
+          "description": "Bắt buộc khi chọn Từ chối"
         }
       ]
     }
   ],
   "business_rules": [
     {
-      "id": "BR-001",
-      "description": "Project List Visibility",
-      "condition": "User views project list",
-      "expected_result": "Only sees projects they created, manage, or have assigned tasks in.",
-      "priority": "P1"
+      "id": "BR-VIEW-01",
+      "description": "Quyền xem: Quản lý thấy toàn bộ dự án. Người tạo chỉ thấy của mình. Người duyệt chỉ thấy cái được phân công.",
+      "condition": "User Role Check",
+      "expected_result": "List filtered by Role correctly"
     },
     {
-      "id": "BR-002",
-      "description": "Filter Dependency (Region -> Area)",
-      "condition": "Region is unselected",
-      "expected_result": "Area filter is disabled or empty.",
-      "priority": "P2"
+      "id": "BR-FILTER-02",
+      "description": "Khu vực phụ thuộc Vùng: Nếu chưa chọn Vùng, dropdown Khu vực bị disabled hoặc rỗng.",
+      "condition": "Vùng == Empty",
+      "expected_result": "Khu vực disabled"
     },
     {
-      "id": "BR-004",
-      "description": "Auto Permission Assignment",
-      "condition": "Manager is selected",
-      "expected_result": "Selected Manager is automatically granted 'Manage' permission in Permissions tab.",
-      "priority": "P1"
+      "id": "BR-SORT-01",
+      "description": "Sắp xếp mặc định: Khi vào màn hình, tự động sort theo Ngày tạo mới nhất.",
+      "condition": "Initial Load",
+      "expected_result": "Sorted by CreatedDate DESC"
     },
     {
-      "id": "BR-006",
-      "description": "OCR Processing State",
-      "condition": "File is being processed by OCR",
-      "expected_result": "Background turns yellow. Returns to normal when done.",
-      "priority": "P2"
+      "id": "BR-REJECT-01",
+      "description": "Từ chối yêu cầu: Khi từ chối, trạng thái chuyển về 'Đang tiến hành' và bắt buộc nhập lý do.",
+      "condition": "Action == Reject",
+      "expected_result": "Status = 'In Progress', Reason needed"
     },
     {
-      "id": "BR-007",
-      "description": "Task Deadline Alert",
-      "condition": "Task is overdue",
-      "expected_result": "Deadline field highlighted in RED.",
-      "priority": "P1"
-    }
-  ],
-  "visual_rules": [
-    {
-      "element_name": "Progress Bar (List View)",
-      "description": "Visual representation of percentage. Color coded? verify if 100% is green."
+      "id": "BR-APPROVE-FLOW",
+      "description": "Trình tự duyệt đa cấp: Cấp 1 -> Cấp 2. Cấp 2 Disabled nếu Cấp 1 chưa xong.",
+      "condition": "Level 1 Status == Pending",
+      "expected_result": "Level 2 User sees 'Approve' button Disabled"
     },
     {
-      "element_name": "Status Chips",
-      "description": "'Chuẩn bị' (Blue/Grey), 'Đang thực hiện' (Yellow/Orange), 'Hoàn thành' (Green), 'Đã hủy' (Red), 'Tạm dừng' (Orange/Red)."
+      "id": "BR-CONCURRENCY",
+      "description": "Đồng thuận nhóm (Any-One): Trong cùng 1 cấp (A, B), chỉ cần A xử lý là xong. B vào sẽ thấy đã xong.",
+      "condition": "User A approved Level 1",
+      "expected_result": "User B sees Level 1 as Approved"
+    },
+    {
+      "id": "BR-PERMISSION-ACTION",
+      "description": "Nút Duyệt/Từ chối chỉ hiện cho người có trách nhiệm. Người khác (PM, Creator) chỉ xem.",
+      "condition": "User is NOT Assigned Approver",
+      "expected_result": "Buttons Hidden/Disabled"
     }
   ]
 }

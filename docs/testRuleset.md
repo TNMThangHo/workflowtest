@@ -109,25 +109,37 @@ When Antigravity generates Test Cases, they MUST follow this JSON/Excel structur
 
 ### 6.2. JSON Output Schema (Smart Schema v5.0)
 
-**Critical**: AI-generated JSON must adhere to the Smart Schema format for the Matrix Engine.
+See `test-gen/schema_models.py` for full definition.
+
+Supported Types: `text` | `email` | `password` | `number` | `date` | `select` | `checkbox` | `radio` | `textarea` | `file` | `chart` | `list` | `table` | `label` | `text_display` | `tree_view` | `kanban_board` | `permission_matrix` | `tabs` | `file_upload`
+
+**Input Format (For Architect):**
 
 ```json
 {
-  "test_cases": [
+  "feature_name": "Project Management",
+  "sections": [
     {
-      "id": "TC-[FEATURE]-[SUB]-[001]",
-      "title": "Strictly descriptive title",
-      "pre_condition": "Context/setup",
-      "steps": ["Step 1", "Step 2"],
-      "expected_result": "Detailed outcome",
-      "type": "Functional",
-      "priority": "P0"
+      "name": "Document Management",
+      "fields": [
+        {
+          "name": "Document Tree",
+          "type": "tree_view",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "business_rules": [
+    {
+      "id": "BR-01",
+      "description": "...",
+      "condition": "...",
+      "expected_result": "..."
     }
   ]
 }
 ```
-
----
 
 ## 7. Requirement Explosion Protocol
 
@@ -136,5 +148,10 @@ When Antigravity generates Test Cases, they MUST follow this JSON/Excel structur
 Mandatory Check:
 
 1.  **Input Fields**: 4 TCs per field.
-2.  **Forms**: Happy Path + Validation Error + System Edge Case.
-3.  **Features**: Check for Analytics, Rate Limiting, and Performance.
+2.  **Complex Widgets**:
+    - **Tree View**: Expand, Collapse, Drag&Drop, Search.
+    - **Kanban**: Move Card, Status Update.
+    - **Permissions**: Assign Role, Conflict check.
+    - **Upload**: Valid file, Invalid ext, Max size, Malware.
+3.  **Forms**: Happy Path + Validation Error + System Edge Case.
+4.  **Features**: Check for Analytics, Rate Limiting, and Performance.

@@ -1,0 +1,270 @@
+{
+  "feature_name": "Project Management",
+  "features": [
+    {
+      "name": "Progress Calculation",
+      "description": "Auto-calculate progress based on task completion %."
+    },
+    {
+      "name": "OCR Processing",
+      "description": "Extract text from uploaded documents (Yellow background during processing)."
+    },
+    {
+      "name": "QR Code",
+      "description": "Generate QR for project access."
+    }
+  ],
+  "sections": [
+    {
+      "name": "Project List (Filter & Search)",
+      "fields": [
+        {
+          "name": "Project List Table",
+          "type": "table",
+          "required": true,
+          "extra_props": {
+            "columns": [
+              "Name",
+              "Code",
+              "Region",
+              "Status",
+              "Manager",
+              "Progress",
+              "Created Date"
+            ],
+            "sortable": true,
+            "pagination": true,
+            "filters": ["Region", "Area", "Manager", "Status"],
+            "row_actions": ["View Detail"]
+          }
+        },
+        {
+          "name": "Search Keyword",
+          "type": "text",
+          "required": false,
+          "max_length": 255
+        }
+      ]
+    },
+    {
+      "name": "General Info & Progress",
+      "fields": [
+        {
+          "name": "General Info Tab",
+          "type": "tabs",
+          "required": true
+        },
+        {
+          "name": "QR Code Display",
+          "type": "text_display",
+          "required": true
+        },
+        {
+          "name": "Progress Bar",
+          "type": "chart",
+          "required": true,
+          "extra_props": {
+            "description": "Visual representation of percentage. Color coded? verify if 100% is green."
+          }
+        },
+        {
+          "name": "Phase List",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Document Management (Tab Hồ sơ)",
+      "fields": [
+        {
+          "name": "Document Tree",
+          "type": "tree_view",
+          "required": true,
+          "extra_props": {
+            "can_create_folder": true,
+            "can_create_doc": true,
+            "can_delete": true,
+            "can_drag_drop": true,
+            "has_search": true,
+            "has_filter": true
+          }
+        },
+        {
+          "name": "Upload Document",
+          "type": "file_upload",
+          "required": true,
+          "allowed_extensions": ["PDF", "DOC", "XLS", "IMG"],
+          "max_size_mb": 50,
+          "extra_props": {
+            "has_ocr": true,
+            "has_versioning": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Task Management (Tab Công việc)",
+      "fields": [
+        {
+          "name": "Task List",
+          "type": "table",
+          "required": true,
+          "extra_props": {
+            "columns": [
+              "Name",
+              "Code",
+              "Phase",
+              "Priority",
+              "Assignee",
+              "Status",
+              "Progress",
+              "Deadline"
+            ],
+            "sortable": true,
+            "pagination": true,
+            "filters": ["Type", "Priority", "Assignee", "Status"],
+            "row_actions": ["Edit", "Delete"]
+          }
+        },
+        {
+          "name": "Task Progress Calculation",
+          "type": "formula",
+          "required": true,
+          "extra_props": {
+            "expression": "(Completed Tasks / Total Tasks) * 100",
+            "triggers": ["Task Status Change", "Task Deleted"]
+          }
+        },
+        {
+          "name": "Task-Document Link",
+          "type": "relationship",
+          "required": false,
+          "extra_props": {
+            "target_entity": "Document",
+            "cardinality": "1-n",
+            "actions": ["Link", "Unlink", "View"]
+          }
+        },
+        {
+          "name": "Task Status Board",
+          "type": "kanban_board",
+          "required": false,
+          "extra_props": {
+            "columns": ["Chuẩn bị", "Đang thực hiện", "Hoàn thành"],
+            "can_move_card": true
+          }
+        },
+        {
+          "name": "Create Task Form",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Document Detail Popup",
+      "fields": [
+        {
+          "name": "Document Metadata View",
+          "type": "complex_view",
+          "required": true,
+          "extra_props": {
+            "tabs": ["Metadata", "Version History", "Linked Tasks"],
+            "actions": ["Download", "Preview", "Print", "Share"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Permissions (Tab Phân quyền)",
+      "fields": [
+        {
+          "name": "Permission Matrix",
+          "type": "permission_matrix",
+          "required": true,
+          "extra_props": {
+            "roles": ["Manage", "View", "Input", "Download"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Project (Form)",
+      "fields": [
+        {
+          "name": "Region",
+          "type": "select",
+          "options": ["Miền Bắc", "Miền Trung", "Miền Nam"],
+          "required": true
+        },
+        {
+          "name": "Area",
+          "type": "select",
+          "options": ["Hà Nội", "Đà Nẵng", "TP.HCM"],
+          "required": true
+        },
+        {
+          "name": "Project Name",
+          "type": "text",
+          "required": true,
+          "min_length": 5,
+          "max_length": 200
+        },
+        {
+          "name": "Manager",
+          "type": "select",
+          "required": true,
+          "options": ["User A", "User B"]
+        }
+      ]
+    }
+  ],
+  "business_rules": [
+    {
+      "id": "BR-001",
+      "description": "Project List Visibility",
+      "condition": "User views project list",
+      "expected_result": "Only sees projects they created, manage, or have assigned tasks in.",
+      "priority": "P1"
+    },
+    {
+      "id": "BR-002",
+      "description": "Filter Dependency (Region -> Area)",
+      "condition": "Region is unselected",
+      "expected_result": "Area filter is disabled or empty.",
+      "priority": "P2"
+    },
+    {
+      "id": "BR-004",
+      "description": "Auto Permission Assignment",
+      "condition": "Manager is selected",
+      "expected_result": "Selected Manager is automatically granted 'Manage' permission in Permissions tab.",
+      "priority": "P1"
+    },
+    {
+      "id": "BR-006",
+      "description": "OCR Processing State",
+      "condition": "File is being processed by OCR",
+      "expected_result": "Background turns yellow. Returns to normal when done.",
+      "priority": "P2"
+    },
+    {
+      "id": "BR-007",
+      "description": "Task Deadline Alert",
+      "condition": "Task is overdue",
+      "expected_result": "Deadline field highlighted in RED.",
+      "priority": "P1"
+    }
+  ],
+  "visual_rules": [
+    {
+      "element_name": "Progress Bar (List View)",
+      "description": "Visual representation of percentage. Color coded? verify if 100% is green."
+    },
+    {
+      "element_name": "Status Chips",
+      "description": "'Chuẩn bị' (Blue/Grey), 'Đang thực hiện' (Yellow/Orange), 'Hoàn thành' (Green), 'Đã hủy' (Red), 'Tạm dừng' (Orange/Red)."
+    }
+  ]
+}

@@ -120,6 +120,77 @@ class MatrixEngine:
             self._expand_enum(field, prefix)
         elif field.type in ["chart", "list", "table", "label", "text_display"]:
             self._expand_display(field, prefix)
+        elif field.type == "tree_view":
+            self._expand_tree_view(field, prefix)
+        elif field.type == "kanban_board":
+            self._expand_kanban(field, prefix)
+        elif field.type == "permission_matrix":
+            self._expand_permission_matrix(field, prefix)
+        elif field.type == "tabs":
+            self._expand_tabs(field, prefix)
+        elif field.type == "file_upload":
+            self._expand_file_upload(field, prefix)
+        elif field.type == "formula":
+            self._expand_formula(field, prefix)
+        elif field.type == "relationship":
+            self._expand_relationship(field, prefix)
+        elif field.type == "complex_view":
+            self._expand_complex_view(field, prefix)
+
+    def _expand_display(self, field: FieldType, prefix: str):
+        if field.type == "table":
+            self._expand_table(field, prefix)
+        else:
+            self._add_tc("Visual", f"{prefix} - Visibility", 
+                         f"1. Check if '{field.name}' is visible.", 
+                         "Element is displayed correctly.", "P2")
+
+    def _expand_table(self, field: FieldType, prefix: str):
+        # 1. Columns & Visibility
+        self._add_tc("Visual", f"{prefix} - Verify Columns", 
+                     "1. Check table headers.", 
+                     f"Columns match PRD: {field.extra_props.get('columns', 'See PRD')}.", "P2")
+        
+        # 2. Sorting
+        if field.extra_props.get("sortable", True):
+            self._add_tc("Functional", f"{prefix} - Sort by Default", 
+                         "1. Check default sort order.", 
+                         "Sorted by Date (Newest) or PRD default.", "P2")
+            self._add_tc("Functional", f"{prefix} - Sort by Name (A-Z)", 
+                         "1. Click 'Name' header.", 
+                         "List sorted alphabetically.", "P2")
+
+        # 3. Pagination
+        if field.extra_props.get("pagination", True):
+            self._add_tc("Functional", f"{prefix} - Pagination Next/Prev", 
+                         "1. Click Next page.", 
+                         "Next set of records loaded.", "P2")
+            self._add_tc("Performance", f"{prefix} - Large Dataset", 
+                         "1. Load 1000+ records.", 
+                         "Pagination handles data gracefully. No lag.", "P2")
+
+        # 4. Filter Integration
+        filters = field.extra_props.get("filters", [])
+        for fil in filters:
+            self._add_tc("Functional", f"{prefix} - Filter by {fil}", 
+                         f"1. Apply filter '{fil}'.", 
+                         "Table updates to show matching records.", "P1")
+            
+        # 5. Row Actions
+        actions = field.extra_props.get("row_actions", ["View", "Edit", "Delete"])
+        for action in actions:
+            self._add_tc("Functional", f"{prefix} - Row Action: {action}", 
+                         f"1. Click '{action}' on a row.", 
+                         f"'{action}' triggered successfully.", "P1")
+
+        # 6. Bulk Actions (Selection)
+        if field.extra_props.get("bulk_actions", True):
+            self._add_tc("Functional", f"{prefix} - Bulk Select All", 
+                         "1. Click 'Select All' checkbox in header.", 
+                         "All visible rows selected. Bulk Action menu appears.", "P2")
+            self._add_tc("Functional", f"{prefix} - Bulk Delete (if applicable)", 
+                         "1. Select multiple rows.\n2. Click 'Delete'.", 
+                         "Selected rows deleted. List refreshes.", "P2")
 
     def _expand_text(self, field: FieldType, prefix: str):
         # Min Length
@@ -221,36 +292,228 @@ class MatrixEngine:
                      f"1. Intercept request.\n2. Send value 'INVALID_OPT'.", 
                      "400 Bad Request or Error.")
 
-    def _expand_display(self, field: FieldType, prefix: str):
-        """
-        New handler for Read-Only / Dashboard Elements (Charts, Lists, Labels)
-        """
-        # 1. Visibility Check
-        self._add_tc("Visual", f"{prefix} - Visibility", 
-                     f"1. Inspect '{field.name}'.", 
-                     "Element is visible and aligned.", "P1")
-        
-        # 2. Data Accuracy (Dynamic Data)
-        if field.type == "chart":
-            self._add_tc("Functional", f"{prefix} - Data Rendering", 
-                         f"1. Hover over chart points.", 
-                         "Tooltip displays correct values.", "P2")
-            self._add_tc("Functional", f"{prefix} - Empty State", 
-                         f"1. Simulate 0 data.", 
-                         "Chart shows 'No Data' or empty state.", "P2")
-        
-        elif field.type == "list" or field.type == "table":
-             self._add_tc("Functional", f"{prefix} - List Check", 
-                          f"1. Verify items in '{field.name}'.", 
-                          "List items render correctly.", "P2")
-             self._add_tc("Functional", f"{prefix} - Pagination/Load", 
-                          f"1. Check if list has > 10 items.", 
-                          "Pagination or Scroll works.", "P2")
+ 
 
-        elif field.type == "label" or field.type == "text_display":
-            self._add_tc("Functional", f"{prefix} - Content Check", 
-                         f"1. Read text of '{field.name}'.", 
-                         "Matches expected format/value.", "P2")
+
+
+
+    def _expand_tree_view(self, field: FieldType, prefix: str):
+        # 1. Structure Navigation
+        self._add_tc("Functional", f"{prefix} - Expand/Collapse Node", 
+                     "1. Click expand icon (+).\n2. Click collapse icon (-).", 
+                     "Tree expands/collapses correctly. Lazy loading works if applicable.", "P2")
+        self._add_tc("Functional", f"{prefix} - Multi-level Hierarchy", 
+                     "1. Create deep structure (Root -> L1 -> L2 -> Leaf).", 
+                     "Hierarchy displayed correctly with indentation.", "P2")
+
+        # 2. Search & Filter
+        if field.extra_props.get("has_search", True):
+            self._add_tc("Functional", f"{prefix} - Search by Name", 
+                         "1. Enter valid node name in search box.", 
+                         "Tree expands and highlights matching nodes.", "P1")
+            self._add_tc("Functional", f"{prefix} - Search by Code/ID", 
+                         "1. Enter valid node code.", 
+                         "Tree auto-expands to result.", "P2")
+            
+        if field.extra_props.get("has_filter", True):
+             self._add_tc("Functional", f"{prefix} - Filter by Status", 
+                         "1. Apply filter 'Approved'.", 
+                         "Only approved nodes shown. Structure preserved.", "P2")
+
+        # 3. CRUD Operations (Folders/Docs)
+        if field.extra_props.get("can_create_folder", True):
+            self._add_tc("Functional", f"{prefix} - Create Folder", 
+                         "1. Right-click Parent -> New Folder.\n2. Enter Name, Security Level.", 
+                         "Folder created. Appears in tree.", "P0")
+            self._add_tc("Functional", f"{prefix} - Rename Folder", 
+                         "1. Right-click Folder -> Rename.\n2. Enter New Name.", 
+                         "Name updated successfully.", "P2")
+            self._add_tc("Validation", f"{prefix} - Create Folder - Duplicate Name", 
+                         "1. Create folder with existing name in same parent.", 
+                         "Error: Name already exists.", "P2")
+
+        if field.extra_props.get("can_create_doc", True):
+            self._add_tc("Functional", f"{prefix} - Create Document", 
+                         "1. Right-click Folder -> New Document.\n2. Enter Code, Name.", 
+                         "Document created.", "P0")
+
+        if field.extra_props.get("can_delete", True):
+            self._add_tc("Functional", f"{prefix} - Delete Folder (Empty)", 
+                         "1. Select empty folder.\n2. Delete.", 
+                         "Folder removed.", "P1")
+            self._add_tc("Validation", f"{prefix} - Delete Folder (With Children)", 
+                         "1. Select folder with children.\n2. Delete.", 
+                         "Warning: Folder not empty OR Cascade delete prompt.", "P2")
+
+        # 4. Organization
+        if field.extra_props.get("can_drag_drop", True):
+             self._add_tc("Functional", f"{prefix} - Drag & Drop Reorder", 
+                         "1. Drag node A to new position within same parent.", 
+                         "Order updated.", "P2")
+             self._add_tc("Functional", f"{prefix} - Drag & Drop Move", 
+                         "1. Drag node A into Folder B.", 
+                         "Node A moves to Folder B.", "P2")
+
+    def _expand_file_upload(self, field: FieldType, prefix: str):
+        # 1. Functional Uploads
+        exts = field.allowed_extensions or ["PDF", "DOCX", "JPG"]
+        for ext in exts:
+            self._add_tc("Functional", f"{prefix} - Upload {ext} File", 
+                         f"1. Select valid .{ext} file.\n2. Upload.", 
+                         "Upload success. Progress bar 100%.", "P1")
+
+        # 2. Constraints
+        if field.max_size_mb:
+            self._add_tc("Validation", f"{prefix} - Max Size Exceeded", 
+                         f"1. Select file > {field.max_size_mb}MB.", 
+                         f"Error: File too large.", "P2")
+            self._add_tc("Validation", f"{prefix} - Zero Byte File", 
+                         "1. Select 0KB file.", 
+                         "Error: File is empty.", "P2")
+        
+        # 3. Security (Critical)
+        self._add_tc("Security", f"{prefix} - Malicious File (Shell)", 
+                     "1. Upload 'shell.php' or 'exec.sh'.", 
+                     "Server rejects file or quarantine.", "P1")
+        self._add_tc("Security", f"{prefix} - Double Extension", 
+                     "1. Upload 'image.jpg.exe'.", 
+                     "Server checks final extension and rejects.", "P1")
+        
+        # 4. Advanced Features
+        if field.extra_props.get("has_ocr", False):
+            self._add_tc("Business Logic", f"{prefix} - OCR Processing", 
+                         "1. Upload scan PDF.\n2. Wait for processing.", 
+                         "Status changes to 'Processing' (Yellow) -> 'Done'. Text extracted.", "P2")
+            
+        if field.extra_props.get("has_versioning", False):
+            self._add_tc("Functional", f"{prefix} - Upload New Version", 
+                         "1. Upload file with same name/code as existing.", 
+                         "System creates v2. History log updated.", "P1")
+
+    def _expand_permission_matrix(self, field: FieldType, prefix: str):
+        # 1. Role Capabilities (Enforcement)
+        roles = field.extra_props.get("roles", ["Manage", "View", "Input", "Download"])
+        for role in roles:
+            self._add_tc("Security", f"{prefix} - Verify Role '{role}' Capabilities", 
+                         f"1. Login as User with '{role}'.\n2. Attempt authorized actions.", 
+                         "Success.", "P1")
+            self._add_tc("Security", f"{prefix} - Verify Role '{role}' Restrictions", 
+                         f"1. Login as User with '{role}'.\n2. Attempt UNAUTHORIZED actions (e.g. Delete).", 
+                         "Access Denied / Button Hidden.", "P1")
+
+        # 2. Assignment Logic
+        self._add_tc("Functional", f"{prefix} - specific_user_assignment", 
+                     "1. Select User -> Assign Role.", 
+                     "User added to list with correct role.", "P1")
+        self._add_tc("Functional", f"{prefix} - specific_unit_assignment", 
+                     "1. Select Unit -> Assign Role.", 
+                     "All members of Unit inherit role.", "P1")
+
+        # 3. Inheritance & Conflict
+        self._add_tc("Business Logic", f"{prefix} - Conflict Resolution", 
+                     "1. User has 'View' (Direct) and 'Manage' (via Unit).", 
+                     "System grants highest privilege (Manage).", "P1")
+
+        # 4. Remove/Revoke
+        self._add_tc("Functional", f"{prefix} - Remove Permission", 
+                     "1. Remove User/Unit.", 
+                     "Access revoked immediately.", "P1")
+        self._add_tc("Business Logic", f"{prefix} - ManageBy Protection", 
+                     "1. Try to remove Owner/Manager.", 
+                     "Error: Cannot remove project owner.", "P2")
+
+    def _expand_tabs(self, field: FieldType, prefix: str):
+        # ... (Same as before)
+        self._add_tc("Functional", f"{prefix} - Switch Tabs", 
+                     "1. Click on different tab headers.", 
+                     "Content switches instantly. No page reload.", "P2")
+        self._add_tc("Visual", f"{prefix} - Active State", 
+                     "1. Inspect active tab.", 
+                     "Active tab highlighted/underlined.", "P2")
+
+    def _expand_kanban(self, field: FieldType, prefix: str):
+        cols = field.extra_props.get("columns", ["To Do", "In Progress", "Done"])
+        
+        # 1. Transitions
+        for i in range(len(cols)-1):
+            self._add_tc("Functional", f"{prefix} - Move Card {cols[i]} -> {cols[i+1]}", 
+                         f"1. Drag card from '{cols[i]}' to '{cols[i+1]}'.", 
+                         f"Card moved. Status updated to '{cols[i+1]}'.", "P1")
+
+        # 2. Rules
+        self._add_tc("Validation", f"{prefix} - Invalid Move", 
+                     "1. Try to skip required step (if configured).", 
+                     "Move rejected.", "P2")
+                     
+        # 3. Card Actions
+        self._add_tc("Functional", f"{prefix} - View Card Detail", 
+                     "1. Click on card.", 
+                     "Popup details appear.", "P2")
+
+    def _expand_formula(self, field: FieldType, prefix: str):
+        # 1. Calculation Correctness
+        expression = field.extra_props.get("expression", "Values")
+        self._add_tc("Business Logic", f"{prefix} - Verify Calculation", 
+                     f"1. Update dependent fields.\n2. Observe '{field.name}'.", 
+                     f"Value calculated correctly using formula: {expression}", "P1")
+        
+        # 2. Trigger Events
+        triggers = field.extra_props.get("triggers", ["On Save", "On Load"])
+        for trig in triggers:
+            self._add_tc("Functional", f"{prefix} - Trigger: {trig}", 
+                         f"1. Perform action '{trig}'.", 
+                         "Formula re-calculates automatically.", "P2")
+
+        # 3. Edge Cases
+        self._add_tc("Validation", f"{prefix} - Divide by Zero / Null", 
+                     "1. Set dependent values to 0 or Null.", 
+                     "Handled gracefully (No crash, shows 0 or Error).", "P2")
+
+    def _expand_relationship(self, field: FieldType, prefix: str):
+        target = field.extra_props.get("target_entity", "Item")
+        cardinality = field.extra_props.get("cardinality", "1-n")
+        
+        # 1. Linking
+        self._add_tc("Functional", f"{prefix} - Link {target}", 
+                     f"1. Search for existing {target}.\n2. Select and Link.", 
+                     f"{target} linked successfully. Appears in list.", "P1")
+        
+        # 2. Unlinking
+        self._add_tc("Functional", f"{prefix} - Unlink {target}", 
+                     f"1. Select linked {target}.\n2. Click Unlink/Remove.", 
+                     "Link removed (Entity not deleted).", "P1")
+        
+        # 3. Cardinality Rules
+        if "1" in cardinality: # 1-1 or n-1
+             self._add_tc("Validation", f"{prefix} - Max Links Enforced", 
+                          f"1. Try to link 2nd {target}.", 
+                          "Error: Single connection only.", "P2")
+
+        # 4. Navigation
+        self._add_tc("Functional", f"{prefix} - Navigate to {target}", 
+                     f"1. Click on linked {target} name.", 
+                     f"Redirects to {target} details.", "P2")
+
+    def _expand_complex_view(self, field: FieldType, prefix: str):
+        tabs = field.extra_props.get("tabs", ["Info", "History"])
+        
+        # 1. Tab Visibility & Navigation
+        for tab in tabs:
+            self._add_tc("Visual", f"{prefix} - Tab Visibility: {tab}", 
+                         f"1. Open Popup/View.\n2. Switch to '{tab}'.", 
+                         f"Tab '{tab}' content displayed.", "P2")
+
+        # 2. Actions
+        actions = field.extra_props.get("actions", ["Download", "Print"])
+        for action in actions:
+            self._add_tc("Functional", f"{prefix} - Action: {action}", 
+                         f"1. Click '{action}' button.", 
+                         f"Action '{action}' executed successfully.", "P2")
+                         
+        # 3. Data Consistency
+        self._add_tc("Data Integrity", f"{prefix} - Verify Data matches Source", 
+                     "1. Compare Popup data with Grid/Source data.", 
+                     "Data is identical.", "P1")
 
     def _convert_rule(self, rule: BusinessRule):
         self._add_tc("Business Logic", f"Verify Rule: {rule.description}", 

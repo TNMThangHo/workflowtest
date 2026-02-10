@@ -1,11 +1,11 @@
-from typing import List, Optional, Literal, Union
+from typing import List, Optional, Literal, Dict, Any, Union
 from pydantic import BaseModel, Field
 
 # --- Enums & Constraints ---
 
 class FieldType(BaseModel):
     name: str
-    type: Literal["text", "email", "password", "number", "date", "select", "checkbox", "radio", "textarea", "file", "chart", "list", "table", "label", "text_display"]
+    type: Literal["text", "email", "password", "number", "date", "select", "checkbox", "radio", "textarea", "file", "chart", "list", "table", "label", "text_display", "tree_view", "kanban_board", "permission_matrix", "tabs", "file_upload", "formula", "relationship", "complex_view"]
     required: bool = True
     
     # Text/Password Constraints
@@ -23,6 +23,10 @@ class FieldType(BaseModel):
     # File Constraints
     allowed_extensions: Optional[List[str]] = None
     max_size_mb: Optional[int] = None
+
+    # Advanced Flexible Props
+    extra_props: Optional[Dict[str, Any]] = {} 
+    # e.g., {"enable_versioning": true, "enable_ocr": true, "columns": ["Name", "Size"]}
 
 class BusinessRule(BaseModel):
     id: str
@@ -42,11 +46,17 @@ class Section(BaseModel):
 
 # --- Root Schema (AI Output Target) ---
 
+class Feature(BaseModel):
+    name: str # e.g., "OCR Processing", "Drag&Drop Reorder"
+    description: str
+
+
 class SmartSchema(BaseModel):
     feature_name: str
     sections: List[Section] = []
     business_rules: List[BusinessRule] = []
     visual_rules: List[VisualRule] = []
+    features: List[Feature] = []
     
     # Metadata for tracking
     version: str = "5.0"

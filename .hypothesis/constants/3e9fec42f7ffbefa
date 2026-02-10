@@ -1,4 +1,0 @@
-# file: D:\workflowTesting\test-gen\logger.py
-# hypothesis_version: 6.151.4
-
-['%(message)s', 'TestGen', 'logs', 'test_gen.log', 'utf-8']

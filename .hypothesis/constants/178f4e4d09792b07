@@ -1,4 +1,0 @@
-# file: D:\workflowTesting\test-gen\data_fuzzer.py
-# hypothesis_version: 6.151.4
-
-[-100, 1000, '-', 'Auto-Generated:', 'Cs', '__main__', 'age', 'email', 'functional_testcases', 'javascript:alert(1)', 'name', 'number', 'quantity', 'r', 'script', 'test_cases', 'test_data', 'title', 'utf-8', 'w', 'xss']

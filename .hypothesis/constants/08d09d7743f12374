@@ -1,4 +1,0 @@
-# file: D:\workflowTesting\test-gen\markdown_parser.py
-# hypothesis_version: 6.151.4
-
-['**', '**feature:**', '**người thực hiện:**', '**phiên bản:**', '**qa:**', '**tester:**', '**tính năng:**', '**version:**', '---', '1.0.0', ':', 'QA Team', 'Test Cases', 'chi tiết', 'email', 'feature_name', 'figma_links', 'prd_version', 'r', 'standard_email_regex', 'tester', 'utf-8']

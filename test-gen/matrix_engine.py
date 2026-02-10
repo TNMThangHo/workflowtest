@@ -30,10 +30,51 @@ class MatrixEngine:
         for vis in self.schema.visual_rules:
             self._convert_visual(vis)
             
-        # 4. Add Global Compatibility Checks (Mandatory for Validator)
+        # 4. Add E2E Flows (Happy Paths)
+        self._add_e2e_flows()
+
+        # 5. Add Global Compatibility Checks (Mandatory for Validator)
         self._add_global_compatibility()
             
         return self.test_cases
+
+    def _add_e2e_flows(self):
+        """
+        Heuristic-based E2E flow generation.
+        Detects "Create" and "List" sections to generate Happy Path TCs.
+        """
+        for section in self.schema.sections:
+            s_name = section.name.lower()
+            
+            # --- Detect Create/Add Flow ---
+            if any(k in s_name for k in ["create", "add", "new", "register"]):
+                steps = [f"1. Open '{section.name}' screen."]
+                step_count = 2
+                
+                # Fill required fields
+                for field in section.fields:
+                    if field.required:
+                        action = "Select" if field.type in ["select", "radio"] else "Enter"
+                        steps.append(f"{step_count}. {action} valid '{field.name}'.")
+                        step_count += 1
+                
+                steps.append(f"{step_count}. Click 'Save' or 'Submit'.")
+                
+                self._add_tc("E2E", f"Verify {section.name} - Success (Happy Path)", 
+                             "\n".join(steps), 
+                             "Action successful. New record created/displayed.", "P0")
+
+            # --- Detect List/Search Flow ---
+            elif any(k in s_name for k in ["list", "search", "index", "filter"]):
+                steps = [
+                    f"1. Open '{section.name}' screen.",
+                    "2. Enter valid Search Key.",
+                    "3. Apply available Filters.",
+                    "4. Verify results."
+                ]
+                self._add_tc("E2E", f"Verify {section.name} - Search & Filter Flow", 
+                             "\n".join(steps), 
+                             "Results match search criteria. UI is responsive.", "P1")
 
     def _add_global_compatibility(self):
         browsers = ["Chrome", "Firefox", "Safari", "Edge"]

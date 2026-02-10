@@ -201,4 +201,9 @@ CRITICAL RULES:
    - Formula: expression, triggers (e.g. "On Save").
    - Relationship: target_entity="Document", cardinality="1-n".
    - Complex View: tabs=["Info", "History"], actions=["Download"].
+9. **CRITICAL - STRUCTURE ENFORCEMENT**: 
+   - ❌ NEVER place "columns", "actions", "tabs", "rows", "readonly", or any dynamic/behavioral properties at the root level of a field object.
+   - ✅ ALWAYS place them inside "extra_props": {...}.
+   - Example WRONG: {{"name": "Table", "type": "table", "columns": ["A", "B"]}}
+   - Example CORRECT: {{"name": "Table", "type": "table", "extra_props": {{"columns": ["A", "B"]}}}}
 """

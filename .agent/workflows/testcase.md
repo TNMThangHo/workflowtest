@@ -16,7 +16,7 @@ Workflow này **TỰ ĐỘNG HÓA TỐI ĐA** từ khâu đọc PRD đến khi r
 
 1.  **Click 1: Khởi tạo (Init)**:
     // turbo
-    - Lệnh: `python -m test-gen.main --step init --prd <prd_path>`
+    - Lệnh: `python -m test_gen.main --step init --prd <prd_path>`
     - Tự động chạy Prepare + Extract trong 1 lệnh.
 
 2.  **Agent Generates Test Cases**:
@@ -41,12 +41,12 @@ Workflow này **TỰ ĐỘNG HÓA TỐI ĐA** từ khâu đọc PRD đến khi r
       - **CRITICAL**: Không được tự viết test case. Chỉ viết Schema (Fields, Rules).
 
     - **Step 2.3: Matrix Explosion**:
-      - **Command**: `python -m test-gen.main --step explode --schema output/schema_input.json`
+      - **Command**: `python -m test_gen.main --step explode --schema output/schema_input.json`
       - **Effect**: Tool Matrix Engine sẽ tự động nhân bản Schema thành 50-100 Test Case (Valid/Invalid/Security/Edge) vào `output/raw_testcases.json`.
 
 3.  **Click 2: Hoàn thiện (Finish)**:
     // turbo
-    - Lệnh: `python -m test-gen.main --step finish --prd <prd_path> --filename tc_auto`
+    - Lệnh: `python -m test_gen.main --step finish --prd <prd_path> --filename tc_auto`
     - Tự động chạy Format + Validate trong 1 lệnh.
 
 ## 3. Finalize

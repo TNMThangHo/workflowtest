@@ -1,140 +1,264 @@
 {
-  "feature_name": "Phê duyệt Yêu cầu (Approval Flow)",
+  "feature_name": "Project Management",
   "sections": [
     {
-      "name": "Bộ lọc tìm kiếm (Search Filters)",
+      "name": "Project List",
       "fields": [
         {
-          "name": "Tìm kiếm (Keyword)",
+          "name": "Search",
           "type": "text",
-          "required": false,
-          "description": "Tìm theo nội dung, tên tài liệu, mô tả"
+          "description": "Search by Project Name or Code"
         },
         {
-          "name": "Vùng (Region)",
+          "name": "Region Filter",
           "type": "select",
-          "required": false,
-          "description": "Chọn nhiều vùng, có tìm kiếm"
+          "options": ["Multi-select"],
+          "description": "Filter by Region"
         },
         {
-          "name": "Khu vực (Area)",
+          "name": "Area Filter",
           "type": "select",
-          "required": false,
-          "description": "Phụ thuộc vào Vùng. Chỉ active khi đã chọn Vùng."
+          "options": ["Multi-select"],
+          "description": "Filter by Area (Dependent on Region)",
+          "extra_props": { "filters": ["Region"] }
         },
         {
-          "name": "Trạng thái (Status)",
+          "name": "Manager Filter",
+          "type": "text",
+          "description": "Filter by Manager Name"
+        },
+        {
+          "name": "Status Filter",
           "type": "select",
-          "required": false,
-          "description": "Chọn nhiều trạng thái"
+          "options": ["Multi-select"],
+          "description": "Filter by Project Status"
         },
         {
-          "name": "Người yêu cầu (Requester)",
-          "type": "select",
-          "required": false,
-          "description": "Chọn nhiều, có tìm kiếm tên"
-        }
-      ]
-    },
-    {
-      "name": "Danh sách & Sắp xếp (List & Sort)",
-      "fields": [
-        {
-          "name": "Tiêu chí sắp xếp (Sort By)",
-          "type": "radio",
-          "options": ["Ngày tạo (Mới -> Cũ)", "Ngày cập nhật"],
-          "required": true,
-          "description": "Mặc định là Ngày tạo"
-        },
-        {
-          "name": "Danh sách kết quả (Result Grid)",
+          "name": "Project Table",
           "type": "table",
-          "required": true,
           "extra_props": {
             "columns": [
-              "Nội dung",
-              "Trạng thái",
-              "Người yêu cầu",
-              "Dự án",
-              "Vùng-Khu vực",
-              "Link Chi tiết"
-            ]
-          },
-          "description": "Hiển thị danh sách yêu cầu phù hợp bộ lọc"
+              "Name",
+              "Code",
+              "Region",
+              "Status",
+              "Manager",
+              "Progress",
+              "Created Date"
+            ],
+            "actions": ["View Details"]
+          }
+        },
+        {
+          "name": "Import Button",
+          "type": "text_display",
+          "description": "Import projects from file (Button)"
+        },
+        {
+          "name": "Create Button",
+          "type": "text_display",
+          "description": "Navigate to Create New Project screen (Button)"
         }
       ]
     },
     {
-      "name": "Chi tiết & Phê duyệt (Detail & Action)",
+      "name": "Create Project",
       "fields": [
         {
-          "name": "Popup Chi tiết (Detail Popup)",
-          "type": "complex_view",
-          "required": false,
+          "name": "Region & Area",
+          "type": "select",
+          "required": true,
+          "description": "Base for filtering personnel and templates"
+        },
+        { "name": "Project Name", "type": "text", "required": true },
+        {
+          "name": "Project Code",
+          "type": "text",
+          "extra_props": { "readonly": true },
+          "description": "Auto-generated"
+        },
+        { "name": "Investor", "type": "text" },
+        { "name": "Project Type", "type": "select" },
+        { "name": "Tags", "type": "text" },
+        { "name": "Start Date", "type": "date" },
+        { "name": "End Date", "type": "date" },
+        { "name": "Inspection Content", "type": "textarea" },
+        { "name": "Description", "type": "textarea" },
+        {
+          "name": "Manager",
+          "type": "select",
+          "required": true,
+          "description": "Filtered by selected Region/Area"
+        },
+        {
+          "name": "Custom Fields",
+          "type": "list",
+          "description": "Dynamic fields"
+        },
+        {
+          "name": "Form Template",
+          "type": "select",
+          "description": "Folder tree template"
+        }
+      ]
+    },
+    {
+      "name": "Project Details - General Info",
+      "fields": [
+        {
+          "name": "General Info Form",
+          "type": "text_display",
+          "extra_props": { "readonly": true },
+          "description": "Read-only view of project info"
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "options": [
+            "InProgress",
+            "Completed",
+            "Preparation",
+            "Paused",
+            "Cancelled"
+          ]
+        },
+        {
+          "name": "QR Code",
+          "type": "text_display",
+          "description": "Scan to access project (Image)"
+        },
+        {
+          "name": "Progress List",
+          "type": "list",
+          "description": "List of Stages with Progress Bars"
+        }
+      ]
+    },
+    {
+      "name": "Project Details - Document Management",
+      "fields": [
+        {
+          "name": "Document Tree",
+          "type": "tree_view",
           "extra_props": {
-            "tabs": ["Thông tin chung", "Lịch sử duyệt"],
-            "actions": ["Chuyển đến công việc", "Đóng"]
-          },
-          "description": "Hiển thị full thông tin khi click vào dòng"
+            "actions": ["Expand", "Collapse", "DragDrop", "Search", "Filter"],
+            "can_create_folder": true,
+            "can_create_doc": true,
+            "can_drag_drop": true
+          }
         },
         {
-          "name": "Hành động (Action)",
-          "type": "radio",
-          "options": ["Phê duyệt (Approve)", "Từ chối (Reject)"],
-          "required": true,
-          "description": "Chỉ hiện với Người phê duyệt được gán"
+          "name": "Add Folder",
+          "type": "text_display",
+          "description": "Button"
         },
         {
-          "name": "Lý do từ chối (Rejection Reason)",
-          "type": "textarea",
-          "required": true,
-          "description": "Bắt buộc khi chọn Từ chối"
+          "name": "Add Document",
+          "type": "text_display",
+          "description": "Button"
+        },
+        {
+          "name": "Upload",
+          "type": "file_upload",
+          "description": "Upload with OCR processing",
+          "extra_props": { "has_ocr": true, "has_versioning": true }
+        },
+        {
+          "name": "Re-organize",
+          "type": "text_display",
+          "description": "Drag and drop interface"
+        },
+        {
+          "name": "Share",
+          "type": "text_display",
+          "description": "Share confidential docs"
+        },
+        {
+          "name": "Export Excel",
+          "type": "text_display",
+          "description": "Button"
+        }
+      ]
+    },
+    {
+      "name": "Project Details - Task Management",
+      "fields": [
+        {
+          "name": "Task List",
+          "type": "table",
+          "extra_props": {
+            "columns": [
+              "Name",
+              "Code",
+              "Stage",
+              "Priority",
+              "Assignee",
+              "Status",
+              "Progress",
+              "Deadline"
+            ],
+            "row_actions": ["Create", "Edit", "Delete"]
+          }
+        },
+        {
+          "name": "Task Filters",
+          "type": "text_display",
+          "description": "Filters: Type, Priority, Assignee, Status"
+        }
+      ]
+    },
+    {
+      "name": "Project Details - Permissions",
+      "fields": [
+        {
+          "name": "Role Matrix",
+          "type": "permission_matrix",
+          "extra_props": { "roles": ["Manage", "View", "Input", "Download"] }
+        },
+        {
+          "name": "Add Member",
+          "type": "text_display",
+          "description": "Add User or Unit"
         }
       ]
     }
   ],
   "business_rules": [
     {
-      "id": "BR-VIEW-01",
-      "description": "Quyền xem: Quản lý thấy toàn bộ dự án. Người tạo chỉ thấy của mình. Người duyệt chỉ thấy cái được phân công.",
-      "condition": "User Role Check",
-      "expected_result": "List filtered by Role correctly"
+      "id": "BR-PRIVACY",
+      "description": "Users only see projects they are related to (Creator, Manager, Assignee)",
+      "condition": "User is not related to project",
+      "expected_result": "Project list only shows relevant projects."
     },
     {
-      "id": "BR-FILTER-02",
-      "description": "Khu vực phụ thuộc Vùng: Nếu chưa chọn Vùng, dropdown Khu vực bị disabled hoặc rỗng.",
-      "condition": "Vùng == Empty",
-      "expected_result": "Khu vực disabled"
+      "id": "BR-REGION-LOGIC",
+      "description": "Manager and Members must belong to the selected Region/Area of the project",
+      "condition": "User selection dropdowns",
+      "expected_result": "Dropdowns only show users from the project's Region/Area."
     },
     {
-      "id": "BR-SORT-01",
-      "description": "Sắp xếp mặc định: Khi vào màn hình, tự động sort theo Ngày tạo mới nhất.",
-      "condition": "Initial Load",
-      "expected_result": "Sorted by CreatedDate DESC"
+      "id": "BR-PROGRESS-CALC",
+      "description": "Stage Progress = (Completed Tasks / Total Tasks related to Docs in Stage) * 100%",
+      "condition": "Task is completed",
+      "expected_result": "Progress bar updates automatically."
     },
     {
-      "id": "BR-REJECT-01",
-      "description": "Từ chối yêu cầu: Khi từ chối, trạng thái chuyển về 'Đang tiến hành' và bắt buộc nhập lý do.",
-      "condition": "Action == Reject",
-      "expected_result": "Status = 'In Progress', Reason needed"
+      "id": "BR-DOC-TREE",
+      "description": "Structure: Group -> Profile L1 -> Profile L2 -> Document",
+      "condition": "Viewing Document Tree",
+      "expected_result": "Tree view enforces this hierarchy."
     },
     {
-      "id": "BR-APPROVE-FLOW",
-      "description": "Trình tự duyệt đa cấp: Cấp 1 -> Cấp 2. Cấp 2 Disabled nếu Cấp 1 chưa xong.",
-      "condition": "Level 1 Status == Pending",
-      "expected_result": "Level 2 User sees 'Approve' button Disabled"
+      "id": "BR-VERSIONING",
+      "description": "Document versions auto-increment (1, 2, 3...)",
+      "condition": "Uploading a new version",
+      "expected_result": "Version number increments."
     },
     {
-      "id": "BR-CONCURRENCY",
-      "description": "Đồng thuận nhóm (Any-One): Trong cùng 1 cấp (A, B), chỉ cần A xử lý là xong. B vào sẽ thấy đã xong.",
-      "condition": "User A approved Level 1",
-      "expected_result": "User B sees Level 1 as Approved"
-    },
-    {
-      "id": "BR-PERMISSION-ACTION",
-      "description": "Nút Duyệt/Từ chối chỉ hiện cho người có trách nhiệm. Người khác (PM, Creator) chỉ xem.",
-      "condition": "User is NOT Assigned Approver",
-      "expected_result": "Buttons Hidden/Disabled"
+      "id": "BR-MANAGER-PROTECTION",
+      "description": "Project Manager has default Manage rights and cannot be removed.",
+      "condition": "Try to remove Project Manager",
+      "expected_result": "Delete action is disabled/blocked."
     }
   ]
 }

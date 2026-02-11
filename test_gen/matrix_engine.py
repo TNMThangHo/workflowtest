@@ -49,30 +49,283 @@ class MatrixEngine:
             return text.split(":")[0].strip()
         return " ".join(text.split()[:7]) + "..."
 
+    # Vietnamese Translation Mappings
+    TITLE_TRANSLATIONS = {
+        # Actions
+        "Verify": "Kiểm tra",
+        "Check": "Kiểm tra",
+        "Test": "Test",
+        "Validate": "Xác thực",
+        "Enter": "Nhập",
+        "Select": "Chọn",
+        "Click": "Bấm",
+        "Upload": "Tải lên",
+        "Download": "Tải xuống",
+        "Delete": "Xóa",
+        "Edit": "Sửa",
+        "View": "Xem",
+        "Create": "Tạo",
+        "Update": "Cập nhật",
+        "Submit": "Gửi",
+        "Cancel": "Hủy",
+        "Save": "Lưu",
+        "Search": "Tìm kiếm",
+        "Filter": "Lọc",
+        "Sort": "Sắp xếp",
+        "Open": "Mở",
+        "Close": "Đóng",
+        "Login": "Đăng nhập",
+        "Logout": "Đăng xuất",
+        "Approve": "Duyệt",
+        "Reject": "Từ chối",
+        
+        # Fields & Components
+        "Button": "Nút",
+        "Field": "Trường",
+        "Input": "Ô nhập",
+        "Dropdown": "Danh sách chọn",
+        "Checkbox": "Hộp kiểm",
+        "Radio": "Nút chọn",
+        "Table": "Bảng",
+        "List": "Danh sách",
+        "Form": "Biểu mẫu",
+        "Dialog": "Hộp thoại",
+        "Modal": "Cửa sổ",
+        "Popup": "Cửa sổ bật lên",
+        "Menu": "Menu",
+        "Tab": "Tab",
+        "Panel": "Bảng điều khiển",
+        "Card": "Thẻ",
+        "Row": "Dòng",
+        "Column": "Cột",
+        "Header": "Tiêu đề",
+        "Footer": "Chân trang",
+        "Sidebar": "Thanh bên",
+        "Toolbar": "Thanh công cụ",
+        "Icon": "Biểu tượng",
+        "Image": "Hình ảnh",
+        "Link": "Liên kết",
+        "Page": "Trang",
+        "Screen": "Màn hình",
+        
+        # Validation & States
+        "Empty": "Trống",
+        "Required": "Bắt buộc",
+        "Optional": "Tùy chọn",
+        "Valid": "Hợp lệ",
+        "Invalid": "Không hợp lệ",
+        "Error": "Lỗi",
+        "Success": "Thành công",
+        "Warning": "Cảnh báo",
+        "Disabled": "Vô hiệu hóa",
+        "Enabled": "Kích hoạt",
+        "Hidden": "Ẩn",
+        "Visible": "Hiển thị",
+        "Loading": "Đang tải",
+        "Pending": "Chờ xử lý",
+        "Completed": "Hoàn thành",
+        "Failed": "Thất bại",
+        
+        # Scenarios
+        "Happy Path": "Trường hợp chuẩn",
+        "Edge Case": "Trường hợp biên",
+        "Negative Case": "Trường hợp âm",
+        "Boundary": "Biên",
+        "Min Length": "Độ dài tối thiểu",
+        "Max Length": "Độ dài tối đa",
+        "Min Value": "Giá trị tối thiểu",
+        "Max Value": "Giá trị tối đa",
+        
+        # Security
+        "XSS Injection": "Tấn công XSS",
+        "SQL Injection": "Tấn công SQL",
+        "HTML Injection": "Tấn công HTML",
+        "Command Injection": "Tấn công Command",
+        "Null Byte Injection": "Tấn công Null Byte",
+        "Param Tampering": "Giả mạo tham số",
+        "Unauthorized Access": "Truy cập trái phép",
+        "Permission Check": "Kiểm tra quyền",
+        
+        # UI/UX
+        "Tooltip": "Chú thích",
+        "Help Text": "Văn bản trợ giúp",
+        "Visibility": "Hiển thị",
+        "Layout": "Bố cục",
+        "Responsiveness": "Responsive",
+        "Visual Cues": "Gợi ý trực quan",
+        "Empty State": "Trạng thái trống",
+        "Long Content": "Nội dung dài",
+        "Hover": "Di chuột",
+        
+        # Performance & Compatibility
+        "Large Dataset": "Dữ liệu lớn",
+        "Performance": "Hiệu suất",
+        "Load Time": "Thời gian tải",
+        "Browser": "Trình duyệt",
+        "Mobile": "Di động",
+        "Desktop": "Máy tính",
+        
+        # Pagination & Actions
+        "Pagination": "Phân trang",
+        "Next": "Tiếp theo",
+        "Previous": "Trước đó",
+        "First": "Đầu tiên",
+        "Last": "Cuối cùng",
+        "Bulk": "Hàng loạt",
+        "Select All": "Chọn tất cả",
+        
+        # Common Terms
+        "on": "trên",
+        "for": "cho",
+        "with": "với",
+        "without": "không có",
+        "and": "và",
+        "or": "hoặc",
+    }
+
+    def _translate_title_to_vietnamese(self, english_title: str) -> str:
+        """
+        Auto-translate test case title from English to Vietnamese.
+        Uses keyword mapping for common test case patterns.
+        """
+        import re
+        
+        # Keep BR-XXX prefix intact
+        if english_title.startswith(("BR-", "LOGIN-", "CHECKOUT-")):
+            return english_title  # Already Vietnamese from _generate_positive_title
+        
+        # Translate piece by piece
+        vietnamese_title = english_title
+        
+        # Sort by length (longer first to match phrases before words)
+        sorted_translations = sorted(self.TITLE_TRANSLATIONS.items(), key=lambda x: len(x[0]), reverse=True)
+        
+        for english, vietnamese in sorted_translations:
+            # Use word boundary regex to prevent mid-word replacements
+            # e.g., 'on' should match ' on ' but not 'Option'
+            pattern = r'\b' + re.escape(english) + r'\b'
+            vietnamese_title = re.sub(pattern, vietnamese, vietnamese_title, flags=re.IGNORECASE)
+        
+        return vietnamese_title
+
+    def _generate_positive_title(self, rule: BusinessRule) -> str:
+        """
+        Generate unique Vietnamese title for each BR based on its specific purpose.
+        CRITICAL: Must handle all 13 BRs uniquely to avoid confusion for non-technical QC.
+        """
+        rid = rule.id.upper() if rule.id else ""
+        desc = rule.description.lower()
+        
+        # === FILTER & UI RULES ===
+        if "BR-001" in rid:  # Regional filter dependency
+            return f"{rid}: Chưa chọn Region → Combobox Area bị vô hiệu hóa (grayed out)"
+        
+        if "BR-002" in rid:  # Area filter data filtering
+            return f"{rid}: Chọn Region A → Area Filter chỉ hiển thị các area thuộc Region A"
+        
+        if "BR-011" in rid:  # Empty data handling
+            return f"{rid}: Filter không match kết quả nào → Hiển thị 'No data available'"
+        
+        if "BR-012" in rid:  # Real-time search
+            return f"{rid}: Gõ từ khóa vào Search Box → Danh sách cập nhật real-time (không cần bấm Search)"
+        
+        if "BR-013" in rid:  # Default sorting
+            return f"{rid}: Load trang lần đầu → Request sắp xếp theo ngày tạo (mới nhất trước)"
+        
+        # === PERMISSION & ROLE RULES ===
+        if "BR-003" in rid:  # Multi-role aggregation
+            return f"{rid}: User có 2 vai trò (PM + Approver) → Thấy request từ cả 2 vai trò"
+        
+        if "BR-009" in rid:  # Role-based button visibility
+            return f"{rid}: User không phải Approver hiện tại → Nút Duyệt/Từ chối bị disable/ẩn"
+        
+        if "BR-010" in rid:  # Permission error handling
+            return f"{rid}: User bị thu hồi quyền Approver → Bấm Approve hiển thị lỗi 'Không được phép thao tác'"
+        
+        # === APPROVAL WORKFLOW RULES ===
+        if "BR-004" in rid:  # Rejection workflow
+            return f"{rid}: Người duyệt từ chối ở bất kỳ cấp nào → Request chuyển 'Rejected', Legal chuyển 'In Progress'"
+        
+        if "BR-005" in rid:  # Mandatory reject reason
+            return f"{rid}: Nhập đủ lý do từ chối (≥10 ký tự) → Được phép Submit Reject"
+        
+        if "BR-006" in rid:  # Single-level approval
+            return f"{rid}: Workflow 1 cấp + Approve → Request 'Approved', Legal 'Completed'"
+        
+        if "BR-007" in rid:  # Multi-level sequence
+            return f"{rid}: Workflow nhiều cấp → Phải duyệt theo thứ tự Level 1 → Level 2 → Level N"
+        
+        if "BR-008" in rid:  # Same-level approver logic
+            return f"{rid}: Cùng cấp có 2 approver (A, B) → A duyệt xong, B không cần thao tác anymore"
+        
+        # Fallback for any new rules
+        return f"{rid}: {self._get_rule_summary(rule.description)} - Trường hợp chuẩn"
+
+    def _generate_violation_title(self, rule: BusinessRule) -> str:
+        """
+        Generate violation scenario title for negative test cases.
+        """
+        rid = rule.id.upper() if rule.id else ""
+        
+        if "BR-001" in rid:
+            return f"{rid}: Đã chọn Region nhưng modify DOM để enable Area → Bị chặn hoặc validate lỗi"
+        
+        if "BR-005" in rid:
+            return f"{rid}: Bấm Reject nhưng không nhập lý do → Hiển thị lỗi 'Rejection reason is required'"
+        
+        if "BR-007" in rid:
+            return f"{rid}: Level 1 chưa duyệt mà Level 2 cố bypass → Nút bị disabled/API reject"
+        
+        return f"{rid}: Vi phạm điều kiện → Bị chặn/Hiển thị lỗi"
+
     def _convert_rule_v2(self, rule: BusinessRule):
         """
-        [NEW] Explodes 1 Business Rule into 3 scenarios (Positive, Negative, Boundary).
+        [UPGRADED v2.2] Convert Business Rule → Multiple Test Cases
+        Generates:
+          1. Happy Path (Positive Scenario)
+          2. Negative Scenario (Violation)
+          3. State Transition (if status-related)
         """
-        summary = self._get_rule_summary(rule.description)
+        # Generate Vietnamese title WITHOUT BR-XXX prefix
+        positive_title = self._generate_positive_title(rule)
+        # Remove BR-XXX prefix for final output (QC doesn't need technical codes)
+        if ':' in positive_title and positive_title.split(':')[0].startswith('BR-'):
+            positive_title = positive_title.split(':', 1)[1].strip()
         
-        # Scenario 1: Happy Path (Positive)
-        self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {summary} - Standard Flow", 
-                     f"Condition: {rule.condition} (Satisfied)", 
-                     f"Result: {rule.expected_result}", 
-                     priority=rule.priority)
-
-        # Scenario 2: Negative Case (if applicable)
-        keywords = ["if", "must", "only", "required", "restrict", 
-                   "nếu", "chỉ", "bắt buộc", "không được", "phải"]
+        violation_title = self._generate_violation_title(rule)
+        if ':' in violation_title and violation_title.split(':')[0].startswith('BR-'):
+            violation_title = violation_title.split(':', 1)[1].strip()
+        
+        # Scenario 1: Happy Path
+        self._add_tc("Business Logic", positive_title,
+                    f"Condition: {rule.condition} (Satisfied)",
+                    f"Result: {rule.expected_result}",
+                    "P0")
+        
+        # Scenario 2: Negative Case
+        keywords = ["not", "cannot", "invalid", "blocked", "disabled", "prohibited", "error", "fail"]
         if any(keyword in rule.description.lower() for keyword in keywords):
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {summary} - Violation Check", 
+            self._add_tc("Business Logic", violation_title, 
                      f"Condition: Violate '{rule.condition}'", 
                      "Result: Action blocked / Error message displayed.", 
                      priority="P2")
 
         # Scenario 3: State Transition (if detected)
         if "status" in rule.expected_result.lower() or "trạng thái" in rule.expected_result.lower():
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: {summary} - Status Update", 
+            # Generate state-specific title
+            rid = rule.id.upper() if rule.id else ""
+            result_lower = rule.expected_result.lower()
+            
+            if "rejected" in result_lower:
+                state_title = f"{rid}: Verify trạng thái chuyển sang 'Rejected'"
+            elif "approved" in result_lower:
+                state_title = f"{rid}: Verify trạng thái chuyển sang 'Approved'"
+            elif "completed" in result_lower:
+                state_title = f"{rid}: Verify Legal Category chuyển sang 'Completed'"
+            else:
+                state_title = f"{rid}: Verify cập nhật trạng thái: {rule.expected_result}"
+            
+            self._add_tc("Business Logic", state_title, 
                      f"Trigger: {rule.condition}", 
                      f"Verify Status changes to: {rule.expected_result}", 
                      priority="P1")
@@ -94,39 +347,65 @@ class MatrixEngine:
         
         if found_roles:
             for role in found_roles:
-                 self._add_tc("Security", f"Verify Rule {rule.id or ''}: Permission Check - Role '{role}'", 
+                 self._add_tc("Security", f"Kiểm tra quyền: Đăng nhập với vai trò '{role}' → Hệ thống cho phép/từ chối hành động", 
                      f"1. Login as '{role}'.\n2. Perform action defined in rule.", 
                      f"System respects '{role}' privileges (Allow/Deny).", "P1")
             
             # Dual Role High Value Case
             if len(found_roles) >= 2:
-                 self._add_tc("Security", f"Verify Rule {rule.id or ''}: Dual Role Context ({found_roles[0]} + {found_roles[1]})", 
+                 self._add_tc("Security", f"User có 2 vai trò ({found_roles[0]} + {found_roles[1]}) → Quyền tổng hợp từ cả 2 role", 
                      f"1. Login as User with BOTH '{found_roles[0]}' and '{found_roles[1]}'.", 
                      "System grants combined privileges (Union of permissions).", "P1")
 
     def _expand_approval_flows(self, rule: BusinessRule):
-        """ [NEW] Generates Approval Flow transitions """
+        """
+        [UPGRADED v3.0] Generates Approval Flow test cases ONLY for rules explicitly about approval flows.
+        Uses rule-specific Vietnamese titles to avoid duplication.
+        CRITICAL: Only BR-004, BR-006, BR-007 should trigger flow generation.
+        BR-008 and BR-009 are NOT about flows, so they skip this function.
+        """
+        rid = rule.id or ""
         desc = rule.description.lower()
-        if "cấp" in desc or "level" in desc or "trình tự" in desc or "flow" in desc:
-             # Multi-level
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Full Approval", 
-                     "1. Level 1 Approve.\n2. Level 2 Approve.\n3. ... Level N Approve.", 
-                     "Final Status: Approved/Completed.", "P1")
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Mid-stream Rejection", 
-                     "1. Level 1 Approve.\n2. Level 2 REJECT.", 
-                     "Status reverts to In Progress/Rejected. Level 1 decision overridden.", "P1")
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Constraint Check", 
-                     "1. Level 1 Pending.\n2. Try to Approve as Level 2.", 
-                     "Action Blocked / Button Disabled.", "P2")
+        
+        # ONLY expand flows for rules that are SPECIFICALLY about multi-level workflows
+        # BR-008 (same-level approver logic) and BR-009 (role-based visibility) are NOT flow rules!
+        if rid not in ["BR-004", "BR-006", "BR-007"]:
+            return  # Skip - not a flow rule
+        
+        # Generate flow-specific test cases with descriptive Vietnamese titles (NO BR-XXX)
+        if rid == "BR-004":  # Rejection workflow
+            self._add_tc("Business Logic", "Quy trình từ chối: Level 2 từ chối → Request 'Rejected', Legal quay về 'In Progress'",
+                        "1. Level 1 Approve.\n2. Level 2 REJECT.",
+                        "Status reverts to In Progress/Rejected.",
+                        "P1")
+        
+        elif rid == "BR-006":  # Single-level approval
+            self._add_tc("Business Logic", "Workflow 1 cấp duy nhất: Approve xong → Legal chuyển 'Completed' ngay",
+                        "1. Request is Single Level.\n2. Approver Approves.",
+                        "Status changes quickly to 'Completed'.",
+                        "P1")
+        
+        elif rid == "BR-007":  # Sequential approval
+            self._add_tc("Business Logic", "Quy trình tuần tự: Level 1 chưa duyệt → Nút Level 2 bị disabled",
+                        "1. Level 1 Pending.\n2. Try to Approve as Level 2.",
+                        "Action Blocked / Button Disabled.",
+                        "P2")
+            self._add_tc("Business Logic", "Quy trình tuần tự: Level 1 duyệt xong → Level 2 được phép duyệt tiếp",
+                        "1. Level 1 Approves.\n2. Level 2 Approves.",
+                        "Status changes to 'Pending Level 2', then 'Approved/Completed'.",
+                        "P1")
 
     def _expand_concurrency(self, rule: BusinessRule):
         """ [NEW] Generates Concurrency/Group Logic """
+        rid = rule.id.upper() if rule.id else ""
         desc = rule.description.lower()
-        if any(k in desc for k in ["any", "all", "đồng thuận", "nhóm", "group", "cùng 1 cấp"]):
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Group Consensus - First Actor Wins", 
+        
+        # BR-003: Multi-role aggregation OR BR-008/010: Same-level approver logic
+        if any(k in desc for k in ["any", "all", "đồng thuận", "nhóm", "group", "cùng 1 cấp", "same-level"]):
+             self._add_tc("Business Logic", "Cùng cấp có nhiều approver: User A duyệt trước → User B không cần thao tác nữa", 
                      "1. User A (Group 1) approves.\n2. User B (Group 1) views request.", 
                      "User B sees request as 'Approved' (No action needed).", "P1")
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Group Consensus - Simultaneous Action", 
+             self._add_tc("Business Logic", "Cùng cấp: 2 user bấm Approve đồng thời → Hệ thống xử lý không conflict", 
                      "1. User A and User B click 'Approve' at exact same time.", 
                      "System handles race condition (Single success or Idempotent).", "P2")
 
@@ -189,42 +468,41 @@ class MatrixEngine:
          desc = rule.description.lower()
          if "permission" in desc or "quyền" in desc:
              # Add explicit Unauthorized checks for non-approvers
-             self._add_tc("Security", f"Verify Rule {rule.id or ''}: Unauthorized Access - Project Lead", 
+             self._add_tc("Security", "Truy cập trái phép: Project Lead (không phải Approver) cố duyệt → Bị chặn", 
                      "1. Login as 'Project Lead' (Non-Approver).\n2. Try to Approve/Reject.", 
                      "Action Blocked / Buttons Hidden / Error 'Không được phép thao tác'.", "P1")
-             self._add_tc("Security", f"Verify Rule {rule.id or ''}: Unauthorized Access - Task Lead", 
+             self._add_tc("Security", "Truy cập trái phép: Task Lead (không phải Approver) cố duyệt → Bị chặn", 
                      "1. Login as 'Task Lead' (Non-Approver).\n2. Try to Approve/Reject.", 
                      "Action Blocked / Buttons Hidden / Error 'Không được phép thao tác'.", "P1")
 
     def _expand_approval_flows(self, rule: BusinessRule):
-        """ [NEW] Generates Approval Flow transitions """
+        """ [NEW] Smart Workflow-Aware Expansions """
+        rid = rule.id.upper() if rule.id else ""
         desc = rule.description.lower()
-        if ("đồng thuận" in desc or "group" in desc or "consensus" in desc) and "flow" not in desc:
-            return  # Skip concurrency rules (handled separately)
-
-        if "cấp" in desc or "level" in desc or "trình tự" in desc or "flow" in desc:
-             # Multi-level vs Single Level
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Single Level Flow - Completion", 
-                     "1. Request is Single Level.\n2. Approver Approves.", 
+        
+        # Single vs Multi-Level Detection
+        if "single" in desc or "1 level" in desc or "1 cấp" in desc:
+             self._add_tc("Business Logic", "Workflow 1 cấp duy nhất: Approver duyệt xong → Trạng thái chuyển 'Completed' ngay",
+                     "1. Request is Single Level.\n2. Approver Approves.",
                      "Status changes quickly to 'Completed' (Hoàn thành).", "P1")
-             
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Level 1 to 2", 
-                     "1. Level 1 Approves.", 
+        elif "multi" in desc or "nhiều cấp" in desc or "level" in desc:
+             self._add_tc("Business Logic", "Workflow nhiều cấp: Level 1 duyệt xong → Chuyển Level 2 (chưa Completed)",
+                     "1. Level 1 Approves.",
                      "Status changes to 'Pending Level 2' (Not Completed yet).", "P1")
 
              # Multi-level Continuation
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Full Approval", 
-                     "1. Level 1 Approve.\n2. Level 2 Approve.\n3. ... Level N Approve.", 
+             self._add_tc("Business Logic", "Workflow nhiều cấp: Tất cả level duyệt tuần tự → Trạng thái cuối 'Approved/Completed'",
+                     "1. Level 1 Approve.\n2. Level 2 Approve.\n3. ... Level N Approve.",
                      "Final Status: Approved/Completed.", "P1")
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Mid-stream Rejection", 
-                     "1. Level 1 Approve.\n2. Level 2 REJECT.", 
+             self._add_tc("Business Logic", "Workflow nhiều cấp: Level 2 từ chối giữa chừng → Quay về 'Rejected', quyết định Level 1 bị ghi đè",
+                     "1. Level 1 Approve.\n2. Level 2 REJECT.",
                      "Status reverts to In Progress/Rejected. Level 1 decision overridden.", "P1")
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Multi-level Flow - Constraints", 
-                     "1. Level 1 Pending.\n2. Try to Approve as Level 2.", 
+             self._add_tc("Business Logic", "Workflow nhiều cấp: Level 1 chưa duyệt → Nút Level 2 bị disabled (ràng buộc thứ tự)",
+                     "1. Level 1 Pending.\n2. Try to Approve as Level 2.",
                      "Action Blocked / Button Disabled.", "P2")
             
              # Visual Cues for Levels
-             self._add_tc("Visual", f"Verify Rule {rule.id or ''}: Visual Cues - Approver Levels", 
+             self._add_tc("Visual", "Gợi ý trực quan: Level 1 vs Level 2 Approver → Màu sắc/nhãn khác biệt rõ ràng",
                      "1. View Request as Level 1 and Level 2 Approvers.", 
                      "Check distinct colors/labels for different levels.", "P2")
 
@@ -233,10 +511,10 @@ class MatrixEngine:
         # [FIXED v2.3] Removed duplicate approval flow generation
         desc = rule.description.lower()
         if any(k in desc for k in ["any", "all", "đồng thuận", "nhóm", "group", "cùng 1 cấp"]):
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Group Consensus - First Actor Wins", 
+             self._add_tc("Business Logic", "Cùng cấp có nhiều approver: User A duyệt trước → User B không cần thao tác nữa", 
                      "1. User A (Group 1) approves.\n2. User B (Group 1) views request.", 
                      "User B sees request as 'Approved' (No action needed).", "P1")
-             self._add_tc("Business Logic", f"Verify Rule {rule.id or ''}: Group Consensus - Simultaneous Action", 
+             self._add_tc("Business Logic", "Cùng cấp: 2 user bấm Approve đồng thời → Hệ thống xử lý không conflict", 
                      "1. User A and User B click 'Approve' at exact same time.", 
                      "System handles race condition (Single success or Idempotent).", "P2")
 
@@ -257,6 +535,63 @@ class MatrixEngine:
                 self._add_tc("Business Logic", f"Verify {field.name} - Dependency on {parent} (Changed)", 
                      f"1. Change value in '{parent}'.", 
                      f"'{field.name}' resets or updates options.", "P2")
+
+    def deduplicate_test_cases(self, test_cases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        [NEW v3.0] Remove duplicate test cases based on semantic similarity.
+        Merges duplicate rules into a single test case.
+        """
+        unique_cases = {}
+        
+        for tc in test_cases:
+            # Create semantic key: Title + Steps (normalized) + Expected Result
+            # Normalize steps to ignore minor formatting differences
+            norm_steps = " ".join(tc['steps'].split()).lower()
+            norm_expected = " ".join(tc['expected'].split()).lower()
+            
+            # Key focuses on the CORE LOGIC, not the random ID
+            key = f"{tc['title']}|{norm_steps}|{norm_expected}"
+            
+            if key not in unique_cases:
+                unique_cases[key] = tc
+            else:
+                # If duplicate found, we can merge metadata if needed
+                # For now, we just keep the first one as it's likely from the most specific rule
+                pass
+                
+        # Re-index IDs to be sequential after filtering
+        final_list = list(unique_cases.values())
+        for idx, tc in enumerate(final_list):
+            tc['id'] = f"TC-{tc['category'][:4].upper()}-{idx + 1:03d}"
+            
+        return final_list
+
+    class TestDataManager:
+        """ [NEW v3.0] Manages realistic test data for Test Case generation """
+        DATA_POOL = {
+            "requester": ["Nguyễn Văn A", "Trần Thị B", "Lê Văn C", "Phạm Minh D"],
+            "project": ["Dự án Pháp lý Q1 2026", "Tuân thủ GDPR", "Hệ thống CRM v2", "Migration AWS"],
+            "region": ["Miền Bắc", "Miền Trung", "Miền Nam"],
+            "area": ["Hà Nội", "Đà Nẵng", "TP.HCM", "Cần Thơ"],
+            "content": ["Phê duyệt ngân sách Marketing", "Tuyển dụng nhân sự IT", "Mua sắm thiết bị văn phòng"],
+            "description": ["Cần phê duyệt gấp trước ngày 15/02", "Dự án trọng điểm Q1", "Bổ sung tai nghe cho team Sales"],
+            "status": ["Pending", "Approved", "Rejected", "Draft", "Cancelled"]
+        }
+
+        @staticmethod
+        def get_example(field_name: str) -> str:
+            name_lower = field_name.lower()
+            if "requester" in name_lower or "người yêu cầu" in name_lower:
+                return MatrixEngine.TestDataManager.DATA_POOL["requester"][0]
+            if "project" in name_lower or "dự án" in name_lower:
+                return MatrixEngine.TestDataManager.DATA_POOL["project"][0]
+            if "region" in name_lower or "vùng" in name_lower:
+                return MatrixEngine.TestDataManager.DATA_POOL["region"][0]
+            if "area" in name_lower or "khu vực" in name_lower:
+                return MatrixEngine.TestDataManager.DATA_POOL["area"][0]
+            if "content" in name_lower or "nội dung" in name_lower:
+                return MatrixEngine.TestDataManager.DATA_POOL["content"][0]
+            return "Valid Value"
 
     def generate_all(self) -> List[Dict[str, Any]]:
         self.test_cases = []
@@ -297,6 +632,9 @@ class MatrixEngine:
         
         # 5. Add Global Compatibility
         self._add_global_compatibility()
+        
+        # [NEW v3.0] Deduplicate
+        self.test_cases = self.deduplicate_test_cases(self.test_cases)
             
         return self.test_cases
 
@@ -351,13 +689,48 @@ class MatrixEngine:
                          f"1. Emulate {device} viewport.", 
                          "UI adjusts correctly (Stacked/Grid).", "P2")
 
-    def _add_tc(self, category: str, title: str, steps: str, expected: str, priority: str = "P2"):
+    def _generate_test_data_from_context(self, title: str, steps: str) -> str:
+        """ [NEW v3.0] Smart Test Data Injection """
+        context = (title + " " + steps).lower()
+        data = []
+        
+        tm = self.TestDataManager
+        
+        if "requester" in context or "người yêu cầu" in context:
+            data.append(f"Requester: {tm.get_example('requester')}")
+            
+        if "project" in context or "dự án" in context:
+             data.append(f"Project: {tm.get_example('project')}")
+
+        if "region" in context or "vùng" in context:
+             data.append(f"Region: {tm.get_example('region')}")
+             
+        if "area" in context or "khu vực" in context:
+             data.append(f"Area: {tm.get_example('area')}")
+             
+        if "content" in context or "nội dung" in context:
+             data.append(f"Content: {tm.get_example('content')}")
+             
+        if "reason" in context or "lý do" in context:
+             data.append(f"Reason: {tm.get_example('description')}")
+             
+        return "\n".join(data) if data else "-"
+
+    def _add_tc(self, category: str, title: str, steps: str, expected: str, priority: str = "P2", test_data: str = None):
+        # Auto-translate title to Vietnamese
+        vietnamese_title = self._translate_title_to_vietnamese(title)
+        
+        # [NEW v3.0] Auto-generate test data if not provided
+        if not test_data:
+            test_data = self._generate_test_data_from_context(title, steps)
+        
         tc_id = f"TC-{category[:4].upper()}-{len(self.test_cases) + 1:03d}"
         self.test_cases.append({
             "id": tc_id,
             "category": category,
-            "title": title,
+            "title": vietnamese_title,  # Use Vietnamese title
             "steps": steps,
+            "test_data": test_data,     # [NEW]
             "expected": expected,
             "priority": priority
         })

@@ -201,9 +201,15 @@ CRITICAL RULES:
    - Formula: expression, triggers (e.g. "On Save").
    - Relationship: target_entity="Document", cardinality="1-n".
    - Complex View: tabs=["Info", "History"], actions=["Download"].
-9. **CRITICAL - STRUCTURE ENFORCEMENT**: 
-   - ❌ NEVER place "columns", "actions", "tabs", "rows", "readonly", or any dynamic/behavioral properties at the root level of a field object.
    - ✅ ALWAYS place them inside "extra_props": {...}.
    - Example WRONG: {{"name": "Table", "type": "table", "columns": ["A", "B"]}}
    - Example CORRECT: {{"name": "Table", "type": "table", "extra_props": {{"columns": ["A", "B"]}}}}
+
+10. **MANDATORY RULE EXPANSION (Deep Coverage)**:
+    - You must NOT just copy rules. You must **NFER** missing rules for a complete QA suite:
+    - **UI/UX Verification**: Add rules to verify every field in Popups/Forms matches the List/Source (e.g., "Verify Popup Status matches List Status").
+    - **Negative Scenarios**: Add rules for what happens when data is missing, invalid, or permissions are revoked mid-session.
+    - **Edge Cases**: Add rules for "0 items", "Max items", "Self-Approval blockade", "Race Conditions".
+    - **Side-Effects**: Add rules for Notifications ("User receives email"), Activity Logs ("Action logged"), and Linked Entity updates.
+    - **Visual States**: Add rules for Disabled Buttons, Color-coded Badges, and Empty States ("No Data found").
 """

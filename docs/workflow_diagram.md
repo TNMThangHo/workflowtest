@@ -63,16 +63,17 @@ graph TD
     %% LAYER 4: Realization
     subgraph "L4: ASSEMBLY & VALIDATION"
         Merger{Merger} --> Builder[Markdown Builder]
-        Builder --> FinalDoc[Final Doc]
+        Builder --> Draft[Draft Doc]
 
-        FinalDoc --> Validator{Quality Gate}
-        Validator -->|Pass| Success((Done))
-        Validator -->|Fail| Loop[Self-Correction]
+        Draft --> Validator{Validation Engine}
+        Validator -->|Pass| FinalDoc[Final Doc]
+        Validator -->|Fail| Warn[Warning/Abort]
     end
 
     %% Styles
     style AI_Arch fill:#f9f,stroke:#333
     style Matrix fill:#bbf,stroke:#333
+    style Validator fill:#f96,stroke:#333
 ```
 
 ## 📝 Workflow Execution Steps
@@ -89,18 +90,21 @@ graph TD
 4.  **Mathematical Expansion:** The **Matrix Engine** takes the validated schema and applies testing algorithms:
     - **Boundary Analysis:** Generates tests for 17, 18, 19, 99, 100, 101.
     - **Combinatorics:** Generates all valid combinations of dropdowns/radio buttons.
-    - **Security Injection:** Injects SQLi (`' OR 1=1`), XSS (`<script>`), and Overflow (1000+ chars) payloads.
-5.  **Data Sanitization:** The **Data Fuzzer** ensures all generated test data is safe for Markdown tables (removes pipe characters, limits length).
+    - **Smart Logic:** Injects **Realistic Data** (Vietnamese names, Project Codes) instead of random strings.
+5.  **Data Sanitization:** Ensures all generated test data is safe for Markdown tables.
 
 ### Phase 3: Visual Intelligence
 
-6.  **Visual QA:** **Eagle Eye** analyzes the provided screenshot to generate UX/UI test cases (e.g., "Verify button color contrasts", "Check mobile responsiveness").
+6.  **Visual QA:** **Eagle Eye** analyzes the provided screenshot to generate UX/UI test cases.
 
 ### Phase 4: Assembly & Validation
 
 7.  **Merging:** Test cases from the Matrix Engine (Functional/Security) and Eagle Eye (Visual) are combined.
-8.  **Formatting:** The **Markdown Builder** generates the final `tc_X.md` file.
-9.  **Quality Gate:** The **Validator** checks the final output for formatting errors, duplicate IDs, or missing logic before presenting it to the user.
+8.  **Formatting:** The **Markdown Builder** generates the draft `tc_X.md` file.
+9.  **Proactive Quality Gate:** The **Validation Engine** scans the draft for:
+    - **Hallucinations:** Keywords like "Payment", "API" if not in PRD.
+    - **Bad Data:** Random strings or malformed inputs.
+10. **Final Output:** If passed, the final traceable artifacts are saved.
 
 ---
 
@@ -111,10 +115,9 @@ graph TD
 | `main.py`             | **Orchestrator**: Manages the flow between User, AI, and Matrix Engine. | ✅ Stable |
 | `prompts.py`          | **Prompt Engineering**: Contains the `SCHEMA_EXTRACTION_PROMPT` for L1. | ✅ Stable |
 | `schema_models.py`    | **Type Safety**: Pydantic models preventing invalid schemas.            | ✅ Stable |
-| `matrix_engine.py`    | **Expansion Logic**: Implements BVA, pairwise, and security injection.  | ✅ Stable |
-| `data_fuzzer.py`      | **Sanitization**: Hypothesis-based generator with markdown scrubbing.   | ✅ Stable |
+| `matrix_engine.py`    | **Expansion Logic**: Implements BVA, pairwise, and data injection.      | ✅ Stable |
+| `validation.py`       | **Quality Gate**: Proactive anti-hallucination & data quality checks.   | ✅ New    |
 | `visual_validator.py` | **Visual QA**: Eagle Eye module for UI/UX testing.                      | ✅ Stable |
-| `validator.py`        | **Quality Gate**: Final check for formatting and consistency.           | ✅ Stable |
 
 ---
 

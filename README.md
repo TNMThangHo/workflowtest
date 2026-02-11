@@ -2,11 +2,13 @@
 
 Automate your QA workflow with AI using this "Smart Test Generator". It analyzes your Product Requirements (PRD) and UI Design (Images) to generate high-coverage test cases automatically.
 
-> **v5.0 Update (Feb 2026)**: Now features **"Smart Schema Architecture"** (Hybrid AI + Python) generating **60-100+ TCs per feature** with support for Forms, Dashboards, and Complex Business Logic.
+> **v5.1 Update (Feb 2026)**: Added **"Proactive Quality Gate"** (Anti-Hallucination Engine) and **"Context-Aware Test Data"** (Realistic Vietnamese Names/Projects).
 
 ## ✨ Key Features
 
 - **🧠 Smart Schema v5.0**: Hybrid architecture where AI acts as "Architect" (extracting structured JSON schema) and Python acts as "Factory" (algorithmic expansion into 60-100+ test cases).
+- **🛡️ Proactive Validation Engine**: Scans generated test cases for "hallucinated" features (e.g., Payment, API, Approval) that don't exist in the PRD.
+- **🇻🇳 Realistic Data Context**: Replaces random strings (`Xy7z`) with context-aware Vietnamese data (e.g., "Nguyễn Văn A", "Dự án Pháp lý Q1 2026").
 - **📊 Multi-Type Support**:
   - **Forms**: Text, Email, Password, Number, Select, Checkbox, Radio, Date, File
   - **Dashboards**: Charts, Lists, Tables, Labels, Widgets
@@ -16,7 +18,6 @@ Automate your QA workflow with AI using this "Smart Test Generator". It analyzes
   - Security (XSS, SQLi, HTML/Command/Null Byte Injection)
   - Compatibility (Chrome, Firefox, Safari, Edge, Mobile)
 - **👁️ Eagle Eye Vision (Visual QA)**: Uses Native Agent Vision to critique UI/UX (Layout, Colors, Typography) without external API keys.
-- **🛡️ Random Fuzzer**: Robust data fuzzing (XSS payloads, Boundary values) using standard Python libraries.
 - **🔒 Strict Validation**: Enforces security checks, performance SLAs, and browser compatibility.
 - **⚡ Zero-Click Workflow**: Two-step process (Init → Finish) handles everything from parsing to formatting.
 
@@ -163,8 +164,8 @@ workflowtest/
 │   ├── schema_models.py # Pydantic Models
 │   ├── matrix_engine.py # Test Case Factory
 │   ├── prompts.py      # AI Prompts
-│   ├── validator.py    # Quality Gates
-│   └── data_fuzzer.py  # Random Data Generation
+│   ├── validation.py   # Proactive Quality Gate (Anti-Hallucination)
+│   └── data_fuzzer.py  # (Deprecated) Random Data Generation
 ├── docs/               # Rulesets and Best Practices
 └── .agent/workflows/   # AWF Automation Scripts
 ```

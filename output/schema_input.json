@@ -1,264 +1,375 @@
 {
-  "feature_name": "Project Management",
+  "feature_name": "Project Management - Complete module",
+  "version": "5.0",
   "sections": [
     {
-      "name": "Project List",
+      "name": "Project List - View & Filter",
       "fields": [
         {
-          "name": "Search",
+          "name": "Search Box",
           "type": "text",
-          "description": "Search by Project Name or Code"
+          "required": false,
+          "description": "Real-time search: Project Name, Project Code"
         },
         {
           "name": "Region Filter",
           "type": "select",
-          "options": ["Multi-select"],
-          "description": "Filter by Region"
+          "required": false,
+          "extra_props": {
+            "multiple": true,
+            "searchable": true,
+            "options": ["Miền Bắc", "Miền Trung", "Miền Nam"]
+          }
         },
         {
           "name": "Area Filter",
           "type": "select",
-          "options": ["Multi-select"],
-          "description": "Filter by Area (Dependent on Region)",
-          "extra_props": { "filters": ["Region"] }
+          "required": false,
+          "extra_props": {
+            "multiple": true,
+            "depends_on": "Region Filter",
+            "searchable": true
+          }
         },
         {
           "name": "Manager Filter",
-          "type": "text",
-          "description": "Filter by Manager Name"
+          "type": "select",
+          "required": false,
+          "extra_props": { "searchable": true }
         },
         {
           "name": "Status Filter",
           "type": "select",
-          "options": ["Multi-select"],
-          "description": "Filter by Project Status"
+          "required": false,
+          "extra_props": {
+            "multiple": true,
+            "options": [
+              "Đang thực hiện",
+              "Hoàn thành",
+              "Chuẩn bị",
+              "Tạm dừng",
+              "Đã hủy"
+            ]
+          }
         },
         {
           "name": "Project Table",
           "type": "table",
           "extra_props": {
             "columns": [
-              "Name",
-              "Code",
-              "Region",
+              "Project Name",
+              "Project Code",
+              "Region-Area",
               "Status",
               "Manager",
-              "Progress",
+              "Progress (%)",
               "Created Date"
             ],
-            "actions": ["View Details"]
+            "sortable": true
           }
-        },
-        {
-          "name": "Import Button",
-          "type": "text_display",
-          "description": "Import projects from file (Button)"
-        },
-        {
-          "name": "Create Button",
-          "type": "text_display",
-          "description": "Navigate to Create New Project screen (Button)"
         }
       ]
     },
     {
-      "name": "Create Project",
+      "name": "Project Detail - Tab 1: Info & Progress",
       "fields": [
         {
-          "name": "Region & Area",
-          "type": "select",
-          "required": true,
-          "description": "Base for filtering personnel and templates"
-        },
-        { "name": "Project Name", "type": "text", "required": true },
-        {
-          "name": "Project Code",
+          "name": "Project Name",
           "type": "text",
-          "extra_props": { "readonly": true },
-          "description": "Auto-generated"
+          "required": true,
+          "extra_props": { "readonly": true }
         },
-        { "name": "Investor", "type": "text" },
-        { "name": "Project Type", "type": "select" },
-        { "name": "Tags", "type": "text" },
-        { "name": "Start Date", "type": "date" },
-        { "name": "End Date", "type": "date" },
-        { "name": "Inspection Content", "type": "textarea" },
-        { "name": "Description", "type": "textarea" },
         {
-          "name": "Manager",
+          "name": "Project Status",
           "type": "select",
           "required": true,
-          "description": "Filtered by selected Region/Area"
-        },
-        {
-          "name": "Custom Fields",
-          "type": "list",
-          "description": "Dynamic fields"
-        },
-        {
-          "name": "Form Template",
-          "type": "select",
-          "description": "Folder tree template"
-        }
-      ]
-    },
-    {
-      "name": "Project Details - General Info",
-      "fields": [
-        {
-          "name": "General Info Form",
-          "type": "text_display",
-          "extra_props": { "readonly": true },
-          "description": "Read-only view of project info"
-        },
-        {
-          "name": "Status",
-          "type": "select",
           "options": [
-            "InProgress",
-            "Completed",
-            "Preparation",
-            "Paused",
-            "Cancelled"
+            "Đang thực hiện",
+            "Hoàn thành",
+            "Chuẩn bị",
+            "Tạm dừng",
+            "Đã hủy"
           ]
+        },
+        {
+          "name": "Progress Bar",
+          "type": "formula",
+          "extra_props": {
+            "expression": "(Completed Tasks / Total Tasks) * 100"
+          }
         },
         {
           "name": "QR Code",
           "type": "text_display",
-          "description": "Scan to access project (Image)"
+          "description": "Scan to view project (requires permission)"
         },
         {
-          "name": "Progress List",
-          "type": "list",
-          "description": "List of Stages with Progress Bars"
+          "name": "Phase List",
+          "type": "table",
+          "extra_props": {
+            "columns": ["Phase Name", "Timeline", "Status", "Progress (%)"]
+          }
         }
       ]
     },
     {
-      "name": "Project Details - Document Management",
+      "name": "Project Detail - Tab 2: Documents",
       "fields": [
         {
           "name": "Document Tree",
           "type": "tree_view",
           "extra_props": {
-            "actions": ["Expand", "Collapse", "DragDrop", "Search", "Filter"],
             "can_create_folder": true,
-            "can_create_doc": true,
-            "can_drag_drop": true
+            "can_upload_file": true,
+            "has_search": true,
+            "has_filter": true,
+            "actions": ["Rename", "Delete", "Move (Drag&Drop)", "Share"]
           }
         },
         {
-          "name": "Add Folder",
-          "type": "text_display",
-          "description": "Button"
-        },
-        {
-          "name": "Add Document",
-          "type": "text_display",
-          "description": "Button"
-        },
-        {
-          "name": "Upload",
+          "name": "Upload Document",
           "type": "file_upload",
-          "description": "Upload with OCR processing",
-          "extra_props": { "has_ocr": true, "has_versioning": true }
+          "extra_props": {
+            "supports_ocr": true,
+            "ocr_trigger": "Automatic on upload"
+          }
         },
         {
-          "name": "Re-organize",
-          "type": "text_display",
-          "description": "Drag and drop interface"
-        },
-        {
-          "name": "Share",
-          "type": "text_display",
-          "description": "Share confidential docs"
-        },
-        {
-          "name": "Export Excel",
-          "type": "text_display",
-          "description": "Button"
+          "name": "Document Preview Popup",
+          "type": "complex_view",
+          "extra_props": {
+            "tabs": ["Metadata", "Task Links", "Version History", "Preview"],
+            "actions": ["Download", "Share"]
+          }
         }
       ]
     },
     {
-      "name": "Project Details - Task Management",
+      "name": "Project Detail - Tab 4: Permissions",
+      "fields": [
+        {
+          "name": "Permission Matrix",
+          "type": "permission_matrix",
+          "extra_props": {
+            "roles": ["Manage", "View", "Input", "Download"],
+            "targets": ["User", "Unit/Department"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Task Management - List & Actions",
       "fields": [
         {
           "name": "Task List",
           "type": "table",
           "extra_props": {
             "columns": [
-              "Name",
+              "Task Name",
               "Code",
-              "Stage",
+              "Phase",
               "Priority",
-              "Assignee",
+              "Assigned To",
               "Status",
               "Progress",
               "Deadline"
             ],
-            "row_actions": ["Create", "Edit", "Delete"]
+            "actions": ["Create", "Edit", "Delete", "Bulk Delete"]
           }
         },
         {
-          "name": "Task Filters",
-          "type": "text_display",
-          "description": "Filters: Type, Priority, Assignee, Status"
+          "name": "Task Filter - Type",
+          "type": "select",
+          "extra_props": { "options": ["Giao việc", "Đặt hàng"] }
+        },
+        {
+          "name": "Task Filter - Priority",
+          "type": "select",
+          "extra_props": {
+            "options": ["Critical", "High", "Medium", "Low"],
+            "multiple": true
+          }
+        },
+        {
+          "name": "Task Filter - Assignee",
+          "type": "select",
+          "extra_props": { "searchable": true, "multiple": true }
+        },
+        {
+          "name": "Task Detail Popup",
+          "type": "complex_view",
+          "extra_props": {
+            "tabs": ["General Info", "Activity Log"],
+            "fields": ["Name", "Description", "Deadline", "Attachments"]
+          }
         }
       ]
     },
     {
-      "name": "Project Details - Permissions",
+      "name": "Custom Fields Configuration",
       "fields": [
         {
-          "name": "Role Matrix",
-          "type": "permission_matrix",
-          "extra_props": { "roles": ["Manage", "View", "Input", "Download"] }
+          "name": "Dynamic Field List",
+          "type": "list",
+          "description": "User-defined fields: Text, Number, Date, Dropdown"
         },
         {
-          "name": "Add Member",
-          "type": "text_display",
-          "description": "Add User or Unit"
+          "name": "Soft Delete Toggle",
+          "type": "checkbox",
+          "description": "If unchecked (Deleted), field hidden in NEW projects but visible in OLD ones"
+        }
+      ]
+    },
+    {
+      "name": "Project Import & Templates",
+      "fields": [
+        {
+          "name": "Import File",
+          "type": "file_upload",
+          "extra_props": { "accept": ".xlsx,.csv" }
+        },
+        {
+          "name": "Template Selector",
+          "type": "select",
+          "extra_props": { "depends_on": "Region/Area" },
+          "description": "Select Folder Structure Template"
         }
       ]
     }
   ],
   "business_rules": [
     {
-      "id": "BR-PRIVACY",
-      "description": "Users only see projects they are related to (Creator, Manager, Assignee)",
-      "condition": "User is not related to project",
-      "expected_result": "Project list only shows relevant projects."
+      "id": "BR-TASK-001",
+      "description": "Task Display: Show all required columns (Name, Code, Phase, Priority, Assignee, Status, %)",
+      "condition": "User views Task List",
+      "expected_result": "All columns visible, data formatted correctly",
+      "priority": "P0"
     },
     {
-      "id": "BR-REGION-LOGIC",
-      "description": "Manager and Members must belong to the selected Region/Area of the project",
-      "condition": "User selection dropdowns",
-      "expected_result": "Dropdowns only show users from the project's Region/Area."
+      "id": "BR-TASK-002",
+      "description": "Task Filter: Combined functionality",
+      "condition": "User applies Type + Priority + Assignee filters",
+      "expected_result": "List shows only tasks matching ALL criteria (AND logic)",
+      "priority": "P1"
     },
     {
-      "id": "BR-PROGRESS-CALC",
-      "description": "Stage Progress = (Completed Tasks / Total Tasks related to Docs in Stage) * 100%",
-      "condition": "Task is completed",
-      "expected_result": "Progress bar updates automatically."
+      "id": "BR-TASK-003",
+      "description": "Task Actions: Create 'Giao việc' Task",
+      "condition": "User submits valid 'Giao việc' form",
+      "expected_result": "Task created, appears in list, notification sent to assignee",
+      "priority": "P0"
     },
     {
-      "id": "BR-DOC-TREE",
-      "description": "Structure: Group -> Profile L1 -> Profile L2 -> Document",
-      "condition": "Viewing Document Tree",
-      "expected_result": "Tree view enforces this hierarchy."
+      "id": "BR-TASK-004",
+      "description": "Overdue Highlight: Task past deadline",
+      "condition": "Current Date > Deadline AND Status != Completed",
+      "expected_result": "Task Row/Deadline highlighted in RED",
+      "priority": "P2"
     },
     {
-      "id": "BR-VERSIONING",
-      "description": "Document versions auto-increment (1, 2, 3...)",
-      "condition": "Uploading a new version",
-      "expected_result": "Version number increments."
+      "id": "BR-CUST-001",
+      "description": "Custom Fields: Soft Delete Logic (New Projects)",
+      "condition": "Field is 'Soft Deleted' in Config AND User creates NEW project",
+      "expected_result": "Field is HIDDEN in Create Form",
+      "priority": "P0"
     },
     {
-      "id": "BR-MANAGER-PROTECTION",
-      "description": "Project Manager has default Manage rights and cannot be removed.",
-      "condition": "Try to remove Project Manager",
-      "expected_result": "Delete action is disabled/blocked."
+      "id": "BR-CUST-002",
+      "description": "Custom Fields: Soft Delete Logic (Old Projects)",
+      "condition": "Field is 'Soft Deleted' in Config AND User views EXISTING project",
+      "expected_result": "Field remains VISIBLE (Backward Compatibility)",
+      "priority": "P0"
+    },
+    {
+      "id": "BR-IMP-001",
+      "description": "Import Project: Valid Excel File",
+      "condition": "User uploads valid Excel with project data",
+      "expected_result": "System parses data, updates existing projects (by Code) and creates new ones",
+      "priority": "P0"
+    },
+    {
+      "id": "BR-TMP-001",
+      "description": "Template: Filter by Region",
+      "condition": "User selects Region 'Miền Bắc'",
+      "expected_result": "Template dropdown shows only 'Mẫu Miền Bắc'",
+      "priority": "P1"
+    },
+    {
+      "id": "BR-TMP-002",
+      "description": "Template: Apply Structure",
+      "condition": "User selects Template A and creates Project",
+      "expected_result": "Project Document Tree inherits Folder Structure from Template A",
+      "priority": "P0"
+    },
+    {
+      "id": "BR-SHARE-001",
+      "description": "Document Sharing: Restricted Levels",
+      "condition": "User tries to share 'Normal' document",
+      "expected_result": "Share button Disabled (Only Mật/Tối mật/Tuyệt mật allowed)",
+      "priority": "P0"
+    },
+    {
+      "id": "BR-SHARE-002",
+      "description": "Document Sharing: View vs Download permissions",
+      "condition": "User shared with 'View' permission tries to Download",
+      "expected_result": "Download blocked/hidden",
+      "priority": "P0"
+    },
+    {
+      "id": "BR-PERM-001",
+      "description": "Download Ability: Role Check",
+      "condition": "User role = View Only",
+      "expected_result": "Download actions are disabled globally",
+      "priority": "P0"
+    },
+    {
+      "id": "BR-PERM-002",
+      "description": "Download Ability: Role Check (Allowed)",
+      "condition": "User role = Download OR Input OR Manage",
+      "expected_result": "Download actions are enabled",
+      "priority": "P0"
+    },
+    {
+      "id": "BR-EXP-001",
+      "description": "Export Excel: Tree Structure",
+      "condition": "User clicks Export Excel",
+      "expected_result": "File downloaded, preserves hierarchy grouping",
+      "priority": "P2"
+    },
+    {
+      "id": "BR-DOC-003",
+      "description": "Document Search: Tree Highlight",
+      "condition": "User searches ID/Name in Tree",
+      "expected_result": "Matching nodes highlighted, parent folders auto-expanded",
+      "priority": "P1"
+    }
+  ],
+  "visual_rules": [
+    {
+      "element_name": "Task Overdue",
+      "description": "Red text/background for overdue items"
+    },
+    {
+      "element_name": "Tree Highlight",
+      "description": "Yellow background for search matches in tree"
+    }
+  ],
+  "features": [
+    {
+      "name": "Task Management",
+      "description": "Full CRUD and assignment flow for Tasks"
+    },
+    {
+      "name": "Custom Dynamic Fields",
+      "description": "Flexible schema with Versioning/Soft Delete"
+    },
+    {
+      "name": "Smart Import/Export",
+      "description": "Excel integration for Projects and Doc Trees"
+    },
+    {
+      "name": "Granular Document Permissions",
+      "description": "Share-level and Role-level download controls"
     }
   ]
 }

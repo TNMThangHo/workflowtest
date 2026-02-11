@@ -317,14 +317,18 @@ class MatrixEngine:
             result_lower = rule.expected_result.lower()
             
             if "rejected" in result_lower:
-                state_title = f"{rid}: Verify trạng thái chuyển sang 'Rejected'"
+                state_title = "Verify trạng thái chuyển sang 'Rejected'"
             elif "approved" in result_lower:
-                state_title = f"{rid}: Verify trạng thái chuyển sang 'Approved'"
+                state_title = "Verify trạng thái chuyển sang 'Approved'"
             elif "completed" in result_lower:
-                state_title = f"{rid}: Verify Legal Category chuyển sang 'Completed'"
+                state_title = "Verify Legal Category chuyển sang 'Completed'"
             else:
-                state_title = f"{rid}: Verify cập nhật trạng thái: {rule.expected_result}"
+                state_title = f"Verify cập nhật trạng thái: {rule.expected_result}"
             
+            # Ensure no stray BR-XXX if it crept in via other paths
+            if ':' in state_title and state_title.split(':')[0].startswith('BR-'):
+                state_title = state_title.split(':', 1)[1].strip()
+
             self._add_tc("Business Logic", state_title, 
                      f"Trigger: {rule.condition}", 
                      f"Verify Status changes to: {rule.expected_result}", 
@@ -475,36 +479,9 @@ class MatrixEngine:
                      "1. Login as 'Task Lead' (Non-Approver).\n2. Try to Approve/Reject.", 
                      "Action Blocked / Buttons Hidden / Error 'Không được phép thao tác'.", "P1")
 
-    def _expand_approval_flows(self, rule: BusinessRule):
-        """ [NEW] Smart Workflow-Aware Expansions """
-        rid = rule.id.upper() if rule.id else ""
-        desc = rule.description.lower()
-        
-        # Single vs Multi-Level Detection
-        if "single" in desc or "1 level" in desc or "1 cấp" in desc:
-             self._add_tc("Business Logic", "Workflow 1 cấp duy nhất: Approver duyệt xong → Trạng thái chuyển 'Completed' ngay",
-                     "1. Request is Single Level.\n2. Approver Approves.",
-                     "Status changes quickly to 'Completed' (Hoàn thành).", "P1")
-        elif "multi" in desc or "nhiều cấp" in desc or "level" in desc:
-             self._add_tc("Business Logic", "Workflow nhiều cấp: Level 1 duyệt xong → Chuyển Level 2 (chưa Completed)",
-                     "1. Level 1 Approves.",
-                     "Status changes to 'Pending Level 2' (Not Completed yet).", "P1")
+    # [REMOVED] Duplicate aggressive heuristic method
+    # _expand_approval_flows was defined twice. The correct one is at line 364.
 
-             # Multi-level Continuation
-             self._add_tc("Business Logic", "Workflow nhiều cấp: Tất cả level duyệt tuần tự → Trạng thái cuối 'Approved/Completed'",
-                     "1. Level 1 Approve.\n2. Level 2 Approve.\n3. ... Level N Approve.",
-                     "Final Status: Approved/Completed.", "P1")
-             self._add_tc("Business Logic", "Workflow nhiều cấp: Level 2 từ chối giữa chừng → Quay về 'Rejected', quyết định Level 1 bị ghi đè",
-                     "1. Level 1 Approve.\n2. Level 2 REJECT.",
-                     "Status reverts to In Progress/Rejected. Level 1 decision overridden.", "P1")
-             self._add_tc("Business Logic", "Workflow nhiều cấp: Level 1 chưa duyệt → Nút Level 2 bị disabled (ràng buộc thứ tự)",
-                     "1. Level 1 Pending.\n2. Try to Approve as Level 2.",
-                     "Action Blocked / Button Disabled.", "P2")
-            
-             # Visual Cues for Levels
-             self._add_tc("Visual", "Gợi ý trực quan: Level 1 vs Level 2 Approver → Màu sắc/nhãn khác biệt rõ ràng",
-                     "1. View Request as Level 1 and Level 2 Approvers.", 
-                     "Check distinct colors/labels for different levels.", "P2")
 
     def _expand_concurrency(self, rule: BusinessRule):
         """ [NEW] Generates Concurrency/Group Logic """
@@ -569,28 +546,41 @@ class MatrixEngine:
     class TestDataManager:
         """ [NEW v3.0] Manages realistic test data for Test Case generation """
         DATA_POOL = {
-            "requester": ["Nguyễn Văn A", "Trần Thị B", "Lê Văn C", "Phạm Minh D"],
-            "project": ["Dự án Pháp lý Q1 2026", "Tuân thủ GDPR", "Hệ thống CRM v2", "Migration AWS"],
+            "requester": ["Nguyễn Văn A", "Trần Thị B", "Lê Văn C", "Phạm Minh D", "Hoàng Văn E"],
+            "project": ["Dự án Pháp lý Q1 2026", "Tuân thủ GDPR", "Hệ thống CRM v2", "Migration AWS", "Cổng thông tin nhân sự"],
             "region": ["Miền Bắc", "Miền Trung", "Miền Nam"],
-            "area": ["Hà Nội", "Đà Nẵng", "TP.HCM", "Cần Thơ"],
+            "area": ["Hà Nội", "Đà Nẵng", "TP.HCM", "Cần Thơ", "Hải Phòng"],
             "content": ["Phê duyệt ngân sách Marketing", "Tuyển dụng nhân sự IT", "Mua sắm thiết bị văn phòng"],
             "description": ["Cần phê duyệt gấp trước ngày 15/02", "Dự án trọng điểm Q1", "Bổ sung tai nghe cho team Sales"],
-            "status": ["Pending", "Approved", "Rejected", "Draft", "Cancelled"]
+            "status": ["Pending", "Approved", "Rejected", "Draft", "Cancelled"],
+            "priority": ["Critical", "High", "Medium", "Low"],
+            "manager": ["Nguyễn Quản Lý", "Lê Giám Đốc", "Trần Trưởng Phòng"],
+            "code": ["PRJ-2026-001", "PRJ-LEG-002", "PRJ-IT-003"]
         }
 
         @staticmethod
         def get_example(field_name: str) -> str:
+            import random
             name_lower = field_name.lower()
-            if "requester" in name_lower or "người yêu cầu" in name_lower:
-                return MatrixEngine.TestDataManager.DATA_POOL["requester"][0]
+            pool = MatrixEngine.TestDataManager.DATA_POOL
+            
+            if "requester" in name_lower or "người yêu cầu" in name_lower or "name" in name_lower:
+                return random.choice(pool["requester"])
             if "project" in name_lower or "dự án" in name_lower:
-                return MatrixEngine.TestDataManager.DATA_POOL["project"][0]
+                return random.choice(pool["project"])
             if "region" in name_lower or "vùng" in name_lower:
-                return MatrixEngine.TestDataManager.DATA_POOL["region"][0]
+                return random.choice(pool["region"])
             if "area" in name_lower or "khu vực" in name_lower:
-                return MatrixEngine.TestDataManager.DATA_POOL["area"][0]
+                return random.choice(pool["area"])
             if "content" in name_lower or "nội dung" in name_lower:
-                return MatrixEngine.TestDataManager.DATA_POOL["content"][0]
+                return random.choice(pool["content"])
+            if "manager" in name_lower or "người quản lý" in name_lower:
+                return random.choice(pool["manager"])
+            if "code" in name_lower or "mã" in name_lower:
+                return random.choice(pool["code"])
+            if "priority" in name_lower or "ưu tiên" in name_lower:
+                return random.choice(pool["priority"])
+                
             return "Valid Value"
 
     def generate_all(self) -> List[Dict[str, Any]]:
@@ -674,7 +664,8 @@ class MatrixEngine:
                 ]
                 self._add_tc("E2E", f"Verify {section.name} - Search & Filter Flow", 
                              "\n".join(steps), 
-                             "Results match search criteria. UI is responsive.", "P1")
+                             "Results match search criteria. UI is responsive.", "P0")
+
 
     def _add_global_compatibility(self):
         browsers = ["Chrome", "Firefox", "Safari", "Edge"]
@@ -820,9 +811,10 @@ class MatrixEngine:
         # 5. Row Actions
         actions = field.extra_props.get("row_actions", ["View", "Edit", "Delete"])
         for action in actions:
+            prio = "P0" if action in ["Delete", "Create", "Approve"] else "P1"
             self._add_tc("Functional", f"{prefix} - Row Action: {action}", 
                          f"1. Click '{action}' on a row.", 
-                         f"'{action}' triggered successfully.", "P1")
+                         f"'{action}' triggered successfully.", prio)
 
         # 6. Bulk Actions (Selection)
         if field.extra_props.get("bulk_actions", True):

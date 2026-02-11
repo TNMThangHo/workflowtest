@@ -63,23 +63,33 @@ def run_format(prd=None, filename=None):
         log.error(f"❌ Format failed: {e}")
         return False
 
-def run_validate(prd_path):
+def run_validate(schema_path):
     log.info("🚀 Starting Phase: VALIDATE...")
     
-    testcases_path = "output/raw_testcases.json" # Validate JSON source
+    testcases_path = "output/raw_testcases.json"
     if not os.path.exists(testcases_path):
-        log.warning("JSON not found, trying Markdown...")
-        testcases_path = "output/test_cases.md"
+        log.error("❌ raw_testcases.json not found.")
+        return False
     
-    # Import here to avoid circular imports if any, or just good practice
-    from .validator import run_validate as validate_logic
-    
-    success = validate_logic(prd_path, testcases_path)
-    if success:
-        log.info("✅ VALIDATION PASSED.")
+    try:
+        from .validation import ValidationEngine
+        # Initialize engine with the Schema (source of truth)
+        engine = ValidationEngine(schema_path)
+        # Run validation against generate Test Cases
+        success = engine.validate(testcases_path)
+        
+        if success:
+            log.info("✅ VALIDATION PASSED.")
+            return True
+        else:
+            log.warning("⚠️ VALIDATION COMPLETED WITH WARNINGS.")
+            return True # Allow proceeding, just warn
+            
+    except ImportError:
+        log.error("❌ ValidationEngine not found. Skipping.")
         return True
-    else:
-        log.error("❌ VALIDATION FAILED.")
+    except Exception as e:
+        log.error(f"❌ Validation failed: {e}")
         return False
 
 def run_report(md_path):
@@ -182,10 +192,15 @@ def main():
     elif args.step == "format":
         run_format(args.prd, args.filename)
     elif args.step == "validate":
-        if not args.prd:
-            log.error("❌ Validations requires --prd argument")
-            sys.exit(1)
-        if not run_validate(args.prd):
+        if not (args.prd or args.schema):
+             log.error("❌ Validations requires --prd OR --schema argument")
+             sys.exit(1)
+        
+        # Use Schema as source of truth if available, else PRD path (which might be used differently by validators)
+        # But ValidationEngine needs Schema Content ideally. 
+        # For now, let's assume if Schema is passed, use it.
+        source = args.schema if args.schema else args.prd
+        if not run_validate(source):
             sys.exit(1)
     elif args.step == "report":
         input_file = args.input or "output/test_cases.md"

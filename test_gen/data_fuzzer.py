@@ -73,20 +73,12 @@ def enrich_test_cases(input_path="output/raw_testcases.json"):
                 current_data = "Auto-Generated:"
             
             # Check for existing enrichment to avoid duplication/spam
-            if "[Random Examples:" not in current_data and "[Hypothesis Examples:" not in current_data:
-                enrichment = f" <br> **[Random Examples]:** `{', '.join(sanitized_examples)}`"
-                # Use 'test_data' field if available, but raw_testcases uses 'input_data' or 'test_data'?
-                # Wait, raw_testcases from MatrixEngine doesn't have 'test_data' field usually?
-                # It has 'steps' and 'expected'.
-                # Let's check raw_testcases.json structure again.
-                # It has 'steps'. 'test_data' is NOT in raw_testcases.json produced by MatrixEngine.
-                # But MatrixEngine MIGHT produce it? No.
-                # So we should append to 'steps' if 'test_data' is missing?
-                # Or output logic uses 'test_data'? format_output.py maps it?
-                # format_output.py prints 'Test Data' column.
-                # if I add 'test_data' key to json dict, format_output.py will use it.
-                tc['test_data'] = current_data + enrichment
-                enriched_count += 1
+            # [MODIFIED v3.1] Disabled Random Examples injection as per user feedback
+            # if "[Random Examples:" not in current_data and "[Hypothesis Examples:" not in current_data:
+            #     enrichment = f" <br> **[Random Examples]:** `{', '.join(sanitized_examples)}`"
+            #     tc['test_data'] = current_data + enrichment
+            #     enriched_count += 1
+            pass
 
 
     # Save back
